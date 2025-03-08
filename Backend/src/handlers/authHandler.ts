@@ -141,10 +141,9 @@ export const githubCallback = async (req: Request, res: Response, next: NextFunc
       });
     }
 
-    // Crear un custom token de Firebase para que el cliente se autentique
+    // Creamos un custom token de Firebase para que el cliente se autentique
     const customToken = await auth.createCustomToken(firebaseUser.uid);
 
-    // Retornar el token (puedes redirigir al cliente o enviar JSON)
     res.status(200).json({ message: "Inicio de sesión con GitHub exitoso", token: customToken });
   } catch (error) {
     next(error);
