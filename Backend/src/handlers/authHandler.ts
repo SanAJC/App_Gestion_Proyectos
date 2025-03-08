@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { auth, db } from '../config/firebase';
 import { GitHubTokenResponse, GitHubUser }  from '../types/type'
 import axios from 'axios';
+import crypto from 'crypto'
 
 // Endpoint para iniciar sesión usando la API REST de Firebase
 export const login = async (req: Request, res: Response, next: NextFunction) => {
@@ -66,8 +67,17 @@ export const githubRedirect = (req: Request, res: Response) => {
   res.redirect(authUrl);
 };
 
-//Endpoint para manejar el callback de github
+export function encrypt(text: string): string {
+  const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY; 
+  const IV_LENGTH = 16; 
+  const iv = crypto.randomBytes(IV_LENGTH);
+  const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY!, 'hex'), iv);
+  let encrypted = cipher.update(text);
+  encrypted = Buffer.concat([encrypted, cipher.final()]);
+  return iv.toString('hex') + ':' + encrypted.toString('hex');
+}
 
+//Endpoint para manejar el callback de github
 export const githubCallback = async (req: Request, res: Response, next: NextFunction) => {
   const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID_;
   const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET_;
@@ -134,17 +144,22 @@ export const githubCallback = async (req: Request, res: Response, next: NextFunc
         email: githubUser.email,
         displayName: githubUser.login,
       });
-      await db.collection('users').doc(firebaseUser.uid).set({
-        username: githubUser.login,
-        email: githubUser.email,
-        rol: "user",
-      });
     }
+    const encryptedToken = encrypt(accessToken);
+    await db.collection('users').doc(firebaseUser.uid).set({
+      username: githubUser.login,
+      email: githubUser.email,
+      rol: "user",
+      githubAccessToken: encryptedToken ,
+    }, { merge: true });
 
     // Creamos un custom token de Firebase para que el cliente se autentique
     const customToken = await auth.createCustomToken(firebaseUser.uid);
 
-    res.status(200).json({ message: "Inicio de sesión con GitHub exitoso", token: customToken });
+    res.status(200).json({ 
+      message: "Inicio de sesión con GitHub exitoso", 
+      firebaseToken: customToken,
+      githubToken: encryptedToken,});
   } catch (error) {
     next(error);
   }

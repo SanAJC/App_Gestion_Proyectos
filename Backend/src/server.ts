@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import projectsRouter from './routes/projects';
 import authRouter from './routes/auth';
+import githubRoutes from './routes/github';
 import errorHandler from './middleware/errorHandler';
 
 dotenv.config();
@@ -17,7 +18,7 @@ app.use(express.json());
 // Rutas
 app.use('/api/projects', projectsRouter);
 app.use('/api/auth', authRouter);
-
+app.use('/api/github', githubRoutes);
 
 app.use(errorHandler);
 

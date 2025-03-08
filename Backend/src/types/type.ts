@@ -39,3 +39,11 @@ export type GitHubUser = {
   email: string;
   login: string;
 };
+
+export type GitHubRepo = {
+  id: number;
+  name: string;
+  full_name: string;
+  html_url: string;
+  description: string | null;
+};
