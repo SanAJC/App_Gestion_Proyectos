@@ -1,8 +1,18 @@
-import express from 'express';
-const router = express.Router();
+import { Router } from 'express';
+import { getProjects, getProjectById, createProject,updateProject,deleteProject } from '../handlers/projectsHandler';
+import tasksRouter from './task';
+const router = Router();
 
-router.get('/', (req, res) => {
-  res.json({ message: "Endpoint de proyectos funciona!" });
-});
+router.get('/',getProjects);
 
-export default router;  
+router.get('/:id',getProjectById);
+
+router.post('/',createProject);
+
+router.put('/:id',updateProject);
+
+router.delete('/:id',deleteProject);
+
+router.use('/:projectId/tasks',tasksRouter)
+
+export default router;
