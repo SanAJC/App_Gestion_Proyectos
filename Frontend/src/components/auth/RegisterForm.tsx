@@ -38,50 +38,52 @@ const RegisterForm: React.FC = () => {
       await dispatch(register({ username, email, password })).unwrap();
       navigate("/login");
     } catch (err) {
-      // El error ya se maneja en el slice
+      console.log(err);
+      
     }
   };
 
   return (
-    <div className="flex flex-col md:flex-row w-full max-w-4xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+    <div className="flex flex-col md:flex-row w-full  mx-auto bg-white  shadow-md overflow-hidden">
       {/* Video a la izquierda */}
-      <div className="md:w-1/2 bg-gradient-to-r from-purple-800 to-indigo-900 flex items-center justify-center">
-        <video className="w-full h-full object-cover" autoPlay muted loop>
-          <source src="/path/to/your/video.mp4" type="video/mp4" />
-          Tu navegador no soporta videos.
-        </video>
+      <div className="md:w-2/2 flex items-center justify-center">
+      <img 
+        src="https://images.unsplash.com/photo-1521737852567-6949f3f9f2b5?q=80&w=2647&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        alt="Login"
+        className="w-full h-full object-cover"
+        />
       </div>
 
       {/* Formulario a la derecha */}
-      <div className="md:w-1/2 p-8 flex flex-col justify-center">
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
-          Crear cuenta
+      <div className="md:w-2xl p-8 flex flex-col justify-center">
+        <h2 className="text-4xl font-bold mb-12 text-left text-[#2C8780] ">
+          Registrate
         </h2>
 
         {/* Botón de GitHub */}
-        <GitHubLoginButton />
+        {/* <GitHubLoginButton />
 
         <div className="flex items-center my-4">
           <div className="flex-grow border-t border-gray-300"></div>
           <div className="px-4 text-sm text-gray-500">o</div>
           <div className="flex-grow border-t border-gray-300"></div>
-        </div>
+        </div> */}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label
               htmlFor="username"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium text-[#333333] mb-4 text-left"
             >
-              Nombre de usuario
+              Nombre de completo
             </label>
             <input
               id="username"
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
-              placeholder="Nombre de usuario"
+              className="w-full px-3 py-3 bg-[#F2F2F2] rounded-md focus:outline-none text-[#808080]"
+              placeholder="juanes coronell"
               required
             />
           </div>
@@ -89,7 +91,7 @@ const RegisterForm: React.FC = () => {
           <div>
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium text-[#333333] mb-4 text-left"
             >
               Correo electrónico
             </label>
@@ -98,8 +100,8 @@ const RegisterForm: React.FC = () => {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
-              placeholder="tu@email.com"
+              className="w-full px-3 py-3 bg-[#F2F2F2] rounded-md focus:outline-none text-[#808080]"
+              placeholder="juanes@gmail.com"
               required
             />
           </div>
@@ -107,7 +109,7 @@ const RegisterForm: React.FC = () => {
           <div>
             <label
               htmlFor="password"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium text-[#333333] mb-4 text-left"
             >
               Contraseña
             </label>
@@ -116,13 +118,13 @@ const RegisterForm: React.FC = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
+              className="w-full px-3 py-3 bg-[#F2F2F2] rounded-md focus:outline-none text-[#808080]"
               placeholder="********"
               required
             />
           </div>
 
-          <div>
+          {/* <div>
             <label
               htmlFor="confirmPassword"
               className="block text-sm font-medium text-gray-700 mb-1"
@@ -138,7 +140,7 @@ const RegisterForm: React.FC = () => {
               placeholder="********"
               required
             />
-          </div>
+          </div> */}
 
           {passwordError && (
             <div className="p-2 text-sm text-red-700 bg-red-100 rounded-md">
@@ -155,7 +157,8 @@ const RegisterForm: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 px-4 bg-purple-700 hover:bg-purple-800 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50"
+            className="w-full py-2 px-4 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 mt-6"
+            id="loginButton"
           >
             {loading ? (
               <span className="flex items-center justify-center">
@@ -182,7 +185,7 @@ const RegisterForm: React.FC = () => {
                 Registrando...
               </span>
             ) : (
-              "Crear cuenta"
+              "Registrarse"
             )}
           </button>
 
