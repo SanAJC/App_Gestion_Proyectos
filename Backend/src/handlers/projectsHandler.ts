@@ -36,6 +36,34 @@ export const getProjectById = async (req: Request, res: Response, next: NextFunc
     }
 };
 
+export const getProjectsByUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { userId } = req.params;
+      if (!userId) {
+        res.status(400).json({ message: 'No se proporcionó el ID del usuario' });
+        return;
+      }
+      const projects:Project[] = [];
+
+
+      const snapshotOwner = await db.collection('projects').where('ownerId', '==', userId).get();
+      
+      snapshotOwner.forEach(doc => {
+        projects.push({ id: doc.id, ...doc.data() } as Project);
+      });
+
+      const snapshotMember = await db.collection('projects').where('miembros', 'array-contains', userId).get();
+      
+      snapshotMember.forEach(doc => {
+        projects.push({ id: doc.id, ...doc.data() } as Project);
+      });
+      
+      res.status(200).json({projects});
+    } catch (error) {
+      next(error);
+    }
+};
+
 export const createProject = async (req: Request, res: Response, next: NextFunction) => {
 
     try {

@@ -1,4 +1,3 @@
-// types.ts
 
 // Tipo para los usuarios
 export type User = {
@@ -23,7 +22,7 @@ export type Project = {
   miembros: string[]; 
   title: string;
   description: string;
-  githubRepo: string;
+  githubRepo: GitHubRepo;
   ownerId: string; 
   status: "activo" | "inactivo" | "finalizado"; 
   tasks?: Task[]; 
