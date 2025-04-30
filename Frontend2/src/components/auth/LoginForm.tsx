@@ -20,7 +20,6 @@ const LoginForm: React.FC = () => {
       navigate("/dashboard");
     } catch (err) {
       console.log(err);
-      
     }
   };
 
@@ -28,17 +27,19 @@ const LoginForm: React.FC = () => {
     <div className="flex flex-col md:flex-row w-full mx-auto bg-white  shadow-md overflow-hidden">
       {/* Video a la izquierda (en lugar de imagen) */}
       <div className="md:w-2/2 bg-gradient-to-r flex items-center justify-center">
-        <img 
-        src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        alt="Login"
-        className="w-full h-full object-cover"
+        <img
+          src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          alt="Login"
+          className="w-full h-full object-cover"
         />
       </div>
 
       {/* Formulario a la derecha */}
       <div className="w-2xl p-8 flex flex-col justify-center ">
         <h2 className="text-4xl font-bold mb-12 text-left text-[#2C8780]">
-          Bienvenido a <br/>CoAPP </h2>
+          Bienvenido a <br />
+          CoAPP{" "}
+        </h2>
         {/* Botón de GitHub */}
         <GitHubLoginButton />
 
@@ -86,11 +87,11 @@ const LoginForm: React.FC = () => {
           </div>
           <div className="text-right">
             <a
-                href="/contraseña-incorrecta"
-                className="text-[#333333] font-medium"
-              >
-                ¿Haz olvidado tu contraseña?
-              </a>
+              href="/contraseña-incorrecta"
+              className="text-[#333333] font-medium"
+            >
+              ¿Haz olvidado tu contraseña?
+            </a>
           </div>
           {error && (
             <div className="p-2 text-sm text-red-700 bg-red-100 rounded-md">
@@ -102,7 +103,8 @@ const LoginForm: React.FC = () => {
             type="submit"
             disabled={loading}
             className="w-full py-2 px-4 bg-purple-700 hover:bg-purple-800 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 mt-6"
-            id="loginButton" >
+            id="loginButton"
+          >
             {loading ? (
               <span className="flex items-center justify-center">
                 <svg
@@ -135,10 +137,7 @@ const LoginForm: React.FC = () => {
           <div className="text-center mt-4">
             <p className="text-sm text-[#333333]">
               ¿No tienes cuenta?{" "}
-              <a
-                href="/register"
-                className="text-[#2C8780] font-medium"
-              >
+              <a href="/register" className="text-[#2C8780] font-medium">
                 Regístrate aquí
               </a>
             </p>

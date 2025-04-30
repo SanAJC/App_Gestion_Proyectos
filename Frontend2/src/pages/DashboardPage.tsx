@@ -1,4 +1,3 @@
-// src/pages/DashboardPage.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -34,6 +33,9 @@ import {
   FileText,
   Box,
   EllipsisVertical,
+  BarChart2,
+  MessageSquare,
+  BarChart,
 } from "lucide-react";
 
 // Import custom dashboard components
@@ -56,31 +58,28 @@ const DashboardPage: React.FC = () => {
 
   const statCardsData = [
     {
-      title: "Lead conversation",
+      title: "Lead coversation",
       value: "1,908",
       progress: 58,
-      icon: Plus,
-      iconBgColor: "bg-green-100",
-      iconColor: "text-green-600",
+      icon: MessageSquare,
+      iconColor: "text-green-500",
       progressColor: "bg-green-500",
     },
     {
-      title: "Lead conversation",
+      title: "Lead coversation",
       value: "58.98%",
       progress: 58,
-      icon: ChevronRight,
-      iconBgColor: "bg-blue-100",
-      iconColor: "text-blue-600",
-      progressColor: "bg-blue-500",
+      icon: BarChart2,
+      iconColor: "text-blue-400",
+      progressColor: "bg-blue-400",
     },
     {
-      title: "Lead conversation",
+      title: "Lead coversation",
       value: "1,576",
       progress: 58,
-      icon: CheckCircle,
-      iconBgColor: "bg-yellow-100",
-      iconColor: "text-yellow-600",
-      progressColor: "bg-yellow-500",
+      icon: BarChart,
+      iconColor: "text-yellow-400",
+      progressColor: "bg-yellow-400",
     },
   ];
 
@@ -89,12 +88,12 @@ const DashboardPage: React.FC = () => {
       {/* Sidebar Provider */}
       <SidebarProvider>
         {/* Sidebar */}
-        <Sidebar className="bg-[#57B8A5] border-r border-slate-200 w-auto">
-          <SidebarHeader className="p-4 flex items-center justify-between">
+        <Sidebar className="relative border-r bg-slate-50 border-slate-200 w-auto">
+          <SidebarHeader className="p-4 flex justify-between">
             <div className="text-teal-600 font-bold text-2xl flex items-center">
               <svg
                 viewBox="0 0 24 24"
-                className="w-8 h-8 mr-2"
+                className="w-8 h-8 mr-3"
                 fill="currentColor"
               >
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
@@ -257,64 +256,42 @@ const DashboardPage: React.FC = () => {
               </DropdownMenu>
             </div>
           </SidebarFooter>
+          {/* Sidebar Trigger for mobile */}
+          <SidebarTrigger className="absolute top-4 right-0 translate-x-full z-20" />
         </Sidebar>
-
-        {/* Sidebar Trigger for mobile */}
-        <SidebarTrigger className="fixed top-4 left-4 z-20" />
       </SidebarProvider>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto mx-4">
         {/* Welcome Header */}
-        <div className="bg-white p-6 border-b border-slate-200">
-          <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-800">
-                Hola Juanes!
+        <div className="bg-white p-6 border-b w-[597px] border-slate-200 rounded-[14px] relative mx-auto">
+          <div className="flex justify-between items-center">
+            <div
+              className="flex flex-col justify-center items-start"
+              style={{ height: "169px" }}
+            >
+              <h1
+                className="text-[2.19rem] font-medium text-[#0C0B0B] font-poppins text-left"
+                style={{ width: "210.88px", height: "54.72px" }}
+              >
+                Hola Juanes !
               </h1>
-              <p className="text-slate-500">Me alegro de volver a verte.</p>
+              <p
+                className="text-[12px] text-[#5A5A5A] font-poppins font-normal leading-6 text-left"
+                style={{ width: "212.80px", height: "27.36px" }}
+              >
+                Me alegro de volver a verte.
+              </p>
             </div>
-            <div className="mt-4 md:mt-0">
-              <div className="w-32 h-14 bg-transparent flex items-center justify-center">
-                <svg width="160" height="60" viewBox="0 0 320 120" fill="none">
-                  <circle
-                    cx="80"
-                    cy="60"
-                    r="30"
-                    fill="#57B8A5"
-                    fillOpacity="0.6"
-                  />
-                  <circle
-                    cx="140"
-                    cy="60"
-                    r="30"
-                    fill="#E2E2E2"
-                    fillOpacity="0.6"
-                  />
-                  <circle
-                    cx="200"
-                    cy="60"
-                    r="30"
-                    fill="#57B8A5"
-                    fillOpacity="0.6"
-                  />
-                  <circle
-                    cx="260"
-                    cy="60"
-                    r="30"
-                    fill="#4A4A4A"
-                    fillOpacity="0.6"
-                  />
-                  <rect
-                    x="70"
-                    y="40"
-                    width="180"
-                    height="20"
-                    rx="5"
-                    fill="#AEDFD7"
-                    fillOpacity="0.4"
-                  />
-                </svg>
+
+            <div className="flex items-center justify-center">
+              {/* Utilizando la imagen para los vectores */}
+              <div className="h-[169.32px]">
+                <img
+                  src="../public/assets/img/Vector.svg"
+                  alt="Patrón geométrico decorativo"
+                  className="h-full w-auto object-contain"
+                />
               </div>
             </div>
           </div>
@@ -322,7 +299,7 @@ const DashboardPage: React.FC = () => {
 
         <div className="max-w-6xl mx-auto p-4 md:p-6">
           {/* Statistics Section */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6">
+          <div className="flex flex-wrap justify-start items-center gap-[25px] mb-6">
             {statCardsData.map((data, index) => (
               <StatCard
                 key={index}
@@ -330,7 +307,6 @@ const DashboardPage: React.FC = () => {
                 value={data.value}
                 progress={data.progress}
                 icon={data.icon}
-                iconBgColor={data.iconBgColor}
                 iconColor={data.iconColor}
                 progressColor={data.progressColor}
               />
