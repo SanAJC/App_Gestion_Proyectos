@@ -39,7 +39,6 @@ const RegisterForm: React.FC = () => {
       navigate("/login");
     } catch (err) {
       console.log(err);
-      
     }
   };
 
@@ -47,10 +46,10 @@ const RegisterForm: React.FC = () => {
     <div className="flex flex-col md:flex-row w-full  mx-auto bg-white  shadow-md overflow-hidden">
       {/* Video a la izquierda */}
       <div className="md:w-2/2 flex items-center justify-center">
-      <img 
-        src="https://images.unsplash.com/photo-1521737852567-6949f3f9f2b5?q=80&w=2647&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        alt="Login"
-        className="w-full h-full object-cover"
+        <img
+          src="https://images.unsplash.com/photo-1521737852567-6949f3f9f2b5?q=80&w=2647&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          alt="Login"
+          className="w-full h-full object-cover"
         />
       </div>
 

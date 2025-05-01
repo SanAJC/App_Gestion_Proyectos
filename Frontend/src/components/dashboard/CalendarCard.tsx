@@ -12,7 +12,7 @@ interface CalendarCardProps {
 
 const CalendarCard: React.FC<CalendarCardProps> = ({ date, setDate }) => {
   const formattedDate = date
-    ? new Intl.DateTimeFormat("en-US", {
+    ? new Intl.DateTimeFormat("es-ES", {
         month: "long",
         day: "numeric",
         year: "numeric",

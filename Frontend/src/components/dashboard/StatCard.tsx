@@ -8,7 +8,6 @@ interface StatCardProps {
   value: string | number;
   progress: number;
   icon: LucideIcon;
-  iconBgColor: string;
   iconColor: string;
   progressColor: string;
 }
@@ -18,31 +17,35 @@ const StatCard: React.FC<StatCardProps> = ({
   value,
   progress,
   icon: Icon,
-  iconBgColor,
   iconColor,
   progressColor,
 }) => {
   return (
-    <Card>
-      <CardContent className="pt-6">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-xs text-slate-500">{title}</p>
-            <p className="text-2xl font-semibold">{value}</p>
+    <Card className="bg-white rounded-lg shadow-sm border-0 p-4">
+      <CardContent className="p-0">
+        {/* Header with value, title and icon */}
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-bold text-slate-800">{value}</span>
+            <span className="text-xs text-slate-500">{title}</span>
           </div>
-          <div
-            className={`h-8 w-8 rounded-md flex items-center justify-center ${iconBgColor}`}
-          >
-            <Icon className={`h-5 w-5 ${iconColor}`} />
+          <div className="w-5 h-5 flex items-center justify-center">
+            <Icon className={`w-4 h-4 ${iconColor}`} />
           </div>
         </div>
-        <div className="mt-4 h-2 bg-slate-100 rounded-full overflow-hidden">
-          <div
-            className={`h-full ${progressColor} rounded-full`}
-            style={{ width: `${progress}%` }}
-          ></div>
+        
+        {/* Progress bar and percentage */}
+        <div className="mt-1">
+          <div className="relative h-1.5 bg-slate-100 rounded-full">
+            <div 
+              className={`absolute top-0 left-0 h-1.5 ${progressColor} rounded-full`} 
+              style={{ width: `${progress}%` }}
+            ></div>
+          </div>
+          <div className="text-right text-[10px] text-slate-500 mt-1">
+            {progress}%
+          </div>
         </div>
-        <p className="text-xs text-slate-500 mt-2 text-right">{progress}%</p>
       </CardContent>
     </Card>
   );
