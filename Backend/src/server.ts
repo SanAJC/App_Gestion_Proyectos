@@ -2,6 +2,7 @@ import express, { Express } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import projectsRouter from './routes/projects';
+import tasksRouter from './routes/task';
 import authRouter from './routes/auth';
 import githubRoutes from './routes/github';
 import errorHandler from './middleware/errorHandler';
@@ -17,11 +18,10 @@ app.use(express.json());
 
 // Rutas
 app.use('/api/projects', projectsRouter);
+app.use('/api/tasks', tasksRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/github', githubRoutes);
 
 app.use(errorHandler);
 
-app.listen(port, () => {
-  console.log(`[server]: Servidor corriendo en http://localhost:${port}`);
-});
+export default app;

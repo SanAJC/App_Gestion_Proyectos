@@ -6,7 +6,7 @@ router.get('/',getTasks);
 
 router.get('/:id',getTaskById);
 
-router.post('/',createTask);
+router.post('/:projectId',createTask);
 
 router.put('/:id',updateTask);
 
