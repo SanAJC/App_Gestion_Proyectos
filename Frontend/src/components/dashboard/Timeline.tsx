@@ -4,7 +4,7 @@ import TimelineEvent from "./TimelineEvent";
 
 const Timeline: React.FC = () => {
   return (
-    <div className="relative pl-8 before:absolute before:left-4 before:top-0 before:h-full before:w-0.5 before:bg-teal-600">
+    <div className="relative pl-7 before:absolute before:left-4 before:top-0 before:h-full before:w-0.5 before:bg-teal-600">
       <TimelineEvent
         title="Llamada diaria"
         time="9:00 AM"

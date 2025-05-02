@@ -36,15 +36,27 @@ const CalendarCard: React.FC<CalendarCardProps> = ({ date, setDate }) => {
         <p className="text-lg font-medium">Today</p>
       </CardHeader>
       <CardContent>
-        <div className="text-center">
+        <div className="w-full">
           <Calendar
             mode="single"
             selected={date}
             onSelect={setDate}
-            className="mx-auto"
+            className="w-full"
             classNames={{
-              day_today: "bg-teal-600 text-white hover:bg-teal-700",
-              day_selected: "bg-teal-600 text-white hover:bg-teal-700",
+              day_today:
+                "bg-teal-600 text-white hover:bg-teal-700 flex items-center justify-center",
+              day_selected:
+                "bg-teal-600 text-white hover:bg-teal-700 flex items-center justify-center",
+              months: "flex flex-col w-full",
+              month: "w-full space-y-4",
+              caption: "flex justify-center pt-1 relative items-center",
+              table: "w-full border-collapse",
+              head_row: "flex w-full",
+              head_cell:
+                "text-muted-foreground w-full font-normal text-[0.8rem]",
+              row: "flex w-full mt-2 justify-between",
+              cell: "relative p-0 text-center text-sm w-full flex justify-center",
+              day: "h-8 w-8 p-0 font-normal aria-selected:opacity-100",
             }}
           />
         </div>

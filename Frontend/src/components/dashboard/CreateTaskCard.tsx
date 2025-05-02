@@ -1,23 +1,39 @@
 // src/components/dashboard/CreateTaskCard.tsx
 import React from "react";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 
-const CreateTaskCard: React.FC = () => {
+interface CreateTaskCardProps {
+  onClick?: () => void;
+}
+
+const CreateTaskCard: React.FC<CreateTaskCardProps> = ({ onClick }) => {
+  // Función para manejar el clic en la tarjeta completa
+  const handleCardClick = () => {
+    if (onClick) onClick();
+  };
+
   return (
-    <div className="bg-teal-800 rounded-lg p-4 text-white">
-      <div className="flex justify-between items-center mb-2">
-        <div>
-          <h3 className="text-lg font-medium">Crear Tarea</h3>
-          <p className="text-sm opacity-90">Crear nueva tarea</p>
+    <div
+      className="bg-[#2C8780] rounded-xl text-white w-full h-24 cursor-pointer relative"
+      style={{
+        background: "linear-gradient(228deg, #2C8780 0%, #232323 100%)",
+        borderRadius: "12px",
+      }}
+      onClick={handleCardClick}
+    >
+      <div className="flex justify-between items-center p-4 h-full">
+        <div className="ml-2">
+          <h3 className="text-lg font-semibold font-poppins">Crear Tarea</h3>
+          <p className="text-sm font-normal font-poppins">Crear nueva tarea</p>
         </div>
-        <Button
-          variant="outline"
-          size="icon"
-          className="h-8 w-8 bg-white text-teal-800 hover:bg-teal-50 border-none"
+        <div
+          className="flex items-center justify-center bg-white rounded-md h-13 w-13 text-[#0C0B0B]"
+          style={{ width: "52px", height: "52px" }}
         >
-          <Plus className="h-5 w-5" />
-        </Button>
+          <div className="relative w-full h-full flex items-center justify-center">
+            <div className="w-6 h-0.5 bg-[#0C0B0B] rounded-lg absolute"></div>
+            <div className="w-0.5 h-6 bg-[#0C0B0B] rounded-lg absolute"></div>
+          </div>
+        </div>
       </div>
     </div>
   );

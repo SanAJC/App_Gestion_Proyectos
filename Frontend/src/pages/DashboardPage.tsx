@@ -24,12 +24,9 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import {
-  Plus,
   Search,
   Bell,
   Settings,
-  CheckCircle,
-  ChevronRight,
   FileText,
   Box,
   EllipsisVertical,
@@ -91,13 +88,7 @@ const DashboardPage: React.FC = () => {
         <Sidebar className="relative border-r bg-slate-50 border-slate-200 w-auto">
           <SidebarHeader className="p-4 flex justify-between">
             <div className="text-teal-600 font-bold text-2xl flex items-center">
-              <svg
-                viewBox="0 0 24 24"
-                className="w-8 h-8 mr-3"
-                fill="currentColor"
-              >
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
-              </svg>
+              <img src="../public/assets/img/Logo.svg" alt="" />
               <span className="md:hidden lg:inline">CoAAP</span>
             </div>
           </SidebarHeader>
@@ -262,73 +253,87 @@ const DashboardPage: React.FC = () => {
       </SidebarProvider>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto mx-4">
-        {/* Welcome Header */}
-        <div className="bg-white p-6 border-b w-[597px] border-slate-200 rounded-[14px] relative mx-auto">
-          <div className="flex justify-between items-center">
-            <div
-              className="flex flex-col justify-center items-start"
-              style={{ height: "169px" }}
-            >
-              <h1
-                className="text-[2.19rem] font-medium text-[#0C0B0B] font-poppins text-left"
-                style={{ width: "210.88px", height: "54.72px" }}
-              >
-                Hola Juanes !
-              </h1>
-              <p
-                className="text-[12px] text-[#5A5A5A] font-poppins font-normal leading-6 text-left"
-                style={{ width: "212.80px", height: "27.36px" }}
-              >
-                Me alegro de volver a verte.
-              </p>
-            </div>
-
-            <div className="flex items-center justify-center">
-              {/* Utilizando la imagen para los vectores */}
-              <div className="h-[169.32px]">
-                <img
-                  src="../public/assets/img/Vector.svg"
-                  alt="Patrón geométrico decorativo"
-                  className="h-full w-auto object-contain"
-                />
+      <div className="flex-1 overflow-auto p-4">
+        {/* Main two-column layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* First Column - 8/12 width on large screens */}
+          <div className="lg:col-span-8 space-y-6">
+            {/* Welcome Header */}
+            <div className="bg-white p-6 rounded-[14px] relative">
+              <div className="flex justify-between items-center">
+                <div
+                  className="flex flex-col justify-center items-start"
+                  style={{ height: "169px" }}
+                >
+                  <h1
+                    className="text-[2.19rem] font-medium text-[#0C0B0B] font-poppins text-left"
+                    style={{ width: "210.88px", height: "54.72px" }}
+                  >
+                    Hola Juanes !
+                  </h1>
+                  <p
+                    className="text-[12px] text-[#5A5A5A] font-poppins font-normal leading-6 text-left"
+                    style={{ width: "212.80px", height: "27.36px" }}
+                  >
+                    Me alegro de volver a verte.
+                  </p>
+                </div>
+                <div className="flex items-center justify-center">
+                  <div className="h-[169.32px]">
+                    <img
+                      src="../public/assets/img/Vector.svg"
+                      alt="Patrón geométrico decorativo"
+                      className="h-full w-auto object-contain"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
 
-        <div className="max-w-6xl mx-auto p-4 md:p-6">
-          {/* Statistics Section */}
-          <div className="flex flex-wrap justify-start items-center gap-[25px] mb-6">
-            {statCardsData.map((data, index) => (
-              <StatCard
-                key={index}
-                title={data.title}
-                value={data.value}
-                progress={data.progress}
-                icon={data.icon}
-                iconColor={data.iconColor}
-                progressColor={data.progressColor}
-              />
-            ))}
-          </div>
+            {/* Statistics Section */}
+            <div
+              className="flex flex-wrap justify-between
+"
+            >
+              {statCardsData.map((data, index) => (
+                <StatCard
+                  key={index}
+                  title={data.title}
+                  value={data.value}
+                  progress={data.progress}
+                  icon={data.icon}
+                  iconColor={data.iconColor}
+                  progressColor={data.progressColor}
+                />
+              ))}
+            </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Main Chart */}
-            <div className="lg:col-span-8">
+            {/* Radar Chart */}
+            <div className="w-full">
               <RadarChart />
             </div>
-
-            {/* Calendar Section */}
-            <div className="lg:col-span-4 space-y-6">
-              <CalendarCard date={date} setDate={setDate} />
-              <CreateTaskCard />
-            </div>
           </div>
 
-          {/* Timeline */}
-          <div className="mt-6">
-            <Timeline />
+          {/* Second Column - 4/12 width on large screens */}
+          <div className="lg:col-span-4 space-y-6">
+            {/* Create Task Card */}
+            <div>
+              <CreateTaskCard
+                onClick={() => {
+                  console.log("Crear nueva tarea");
+                }}
+              />
+            </div>
+
+            {/* Calendar Card */}
+            <div>
+              <CalendarCard date={date} setDate={setDate} />
+            </div>
+
+            {/* Timeline */}
+            <div>
+              <Timeline />
+            </div>
           </div>
         </div>
       </div>
