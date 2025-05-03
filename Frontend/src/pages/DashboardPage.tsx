@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Avatar } from "@/components/ui/avatar";
@@ -15,13 +14,16 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarMenuItem,
+  SidebarMenuButton,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import {
   Search,
@@ -29,7 +31,7 @@ import {
   Settings,
   FileText,
   Box,
-  EllipsisVertical,
+  ChevronLeft,
   BarChart2,
   MessageSquare,
   BarChart,
@@ -51,6 +53,20 @@ const DashboardPage: React.FC = () => {
   const handleLogout = () => {
     dispatch(logout());
     navigate("/login");
+  };
+
+  // Componente para el contenido principal que se ajusta al estado del sidebar
+  const MainContent = ({ children }: { children: React.ReactNode }) => {
+    const { state } = useSidebar();
+    return (
+      <div
+        className={`flex-1 overflow-auto p-4 transition-all duration-200 ease-linear ${
+          state === "collapsed" ? "md:ml-12" : ""
+        }`}
+      >
+        {children}
+      </div>
+    );
   };
 
   const statCardsData = [
@@ -85,16 +101,21 @@ const DashboardPage: React.FC = () => {
       {/* Sidebar Provider */}
       <SidebarProvider>
         {/* Sidebar */}
-        <Sidebar className="relative border-r bg-slate-50 border-slate-200 w-auto">
-          <SidebarHeader className="p-4 flex justify-between">
+        <Sidebar
+          className="hidden md:block relative border-r bg-slate-50 border-slate-200 w-auto"
+          collapsible="icon"
+        >
+          <SidebarHeader className="p-4 flex justify-between group-data-[collapsible=icon]:p-2">
             <div className="text-teal-600 font-bold text-2xl flex items-center">
               <img src="../public/assets/img/Logo.svg" alt="" />
-              <span className="md:hidden lg:inline">CoAAP</span>
+              <span className="md:hidden lg:inline transition-opacity duration-200 ease-linear group-data-[collapsible=icon]:opacity-0">
+                CoAAP
+              </span>
             </div>
           </SidebarHeader>
 
-          <SidebarContent className="px-4 mt-4">
-            <div className="relative mb-6">
+          <SidebarContent className="px-4 mt-4 group-data-[collapsible=icon]:px-2">
+            <div className="relative mb-6 group-data-[collapsible=icon]:hidden">
               <Search
                 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white"
                 size={18}
@@ -105,66 +126,59 @@ const DashboardPage: React.FC = () => {
               />
             </div>
 
-            <SidebarMenuItem className="mb-2">
-              <a
-                href="#"
-                className="flex items-center text-teal-600 font-medium p-2 rounded hover:bg-slate-100"
+            <SidebarMenuItem className="mb-2 group-data-[collapsible=icon]:mb-4">
+              <SidebarMenuButton
+                tooltip="Dashboard"
+                isActive={true}
+                className="flex items-center text-teal-600 font-medium p-2 rounded hover:bg-slate-100 group-data-[collapsible=icon]:justify-center"
               >
-                <Box className="w-6 h-6 mr-3" />
-                <span className="md:hidden lg:inline font-semibold">
+                <Box className="w-6 h-6 mr-3 group-data-[collapsible=icon]:mr-0 group-data-[collapsible=icon]:opacity-100 opacity-50" />
+                <span className="transition-opacity duration-200 ease-linear font-semibold group-data-[collapsible=icon]:opacity-0">
                   Dashboard
                 </span>
-              </a>
+              </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <SidebarMenuItem className="mb-2">
-              <a
-                href="#"
-                className="flex items-center text-[#2C2C2C] p-2 rounded hover:bg-slate-100 hover:text-teal-600"
+            <SidebarMenuItem className="mb-2 group-data-[collapsible=icon]:mb-4">
+              <SidebarMenuButton
+                tooltip="Proyectos"
+                className="flex items-center text-[#2C2C2C] p-2 rounded hover:bg-slate-100 hover:text-teal-600 group-data-[collapsible=icon]:justify-center"
                 onMouseEnter={(e) => {
                   const fileIcon = e.currentTarget.querySelector(".file-icon");
-                  if (fileIcon) {
-                    fileIcon.classList.remove("opacity-50");
-                  }
+                  if (fileIcon) fileIcon.classList.remove("opacity-50");
                 }}
                 onMouseLeave={(e) => {
                   const fileIcon = e.currentTarget.querySelector(".file-icon");
-                  if (fileIcon) {
-                    fileIcon.classList.add("opacity-50");
-                  }
+                  if (fileIcon) fileIcon.classList.add("opacity-50");
                 }}
               >
-                <FileText className="file-icon w-6 h-6 mr-3 text-[#2C8780] opacity-50" />
-                <span className="md:hidden lg:inline font-semibold">
+                <FileText className="file-icon w-6 h-6 mr-3 text-[#2C8780] group-data-[collapsible=icon]:mr-0 group-data-[collapsible=icon]:opacity-100 opacity-50" />
+                <span className="transition-opacity duration-200 ease-linear font-semibold group-data-[collapsible=icon]:opacity-0">
                   Proyectos
                 </span>
-              </a>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarContent>
 
-          <SidebarFooter className="mt-auto p-4">
-            <SidebarMenuItem className="mb-4">
-              <a
-                href="#"
-                className="flex items-center text-slate-600 p-2 rounded hover:bg-slate-100 hover:text-teal-600"
+          <SidebarFooter className="mt-auto p-4 group-data-[collapsible=icon]:p-2">
+            <SidebarMenuItem className="mb-4 group-data-[collapsible=icon]:mb-4">
+              <SidebarMenuButton
+                tooltip="Notificaciones"
+                className="flex items-center text-slate-600 p-2 rounded hover:bg-slate-100 hover:text-teal-600 group-data-[collapsible=icon]:justify-center"
                 onMouseEnter={(e) => {
-                  const Bellicon = e.currentTarget.querySelector(".Bell-icon");
-                  if (Bellicon) {
-                    Bellicon.classList.remove("opacity-50");
-                  }
+                  const bellIcon = e.currentTarget.querySelector(".Bell-icon");
+                  if (bellIcon) bellIcon.classList.remove("opacity-50");
                 }}
                 onMouseLeave={(e) => {
-                  const Bellicon = e.currentTarget.querySelector(".Bell-icon");
-                  if (Bellicon) {
-                    Bellicon.classList.add("opacity-50");
-                  }
+                  const bellIcon = e.currentTarget.querySelector(".Bell-icon");
+                  if (bellIcon) bellIcon.classList.add("opacity-50");
                 }}
               >
-                <Bell className="Bell-icon w-6 h-6 mr-3 text-[#2C8780] " />
-                <span className="md:hidden text-[#2C2C2C] lg:inline font-semibold">
+                <Bell className="Bell-icon w-6 h-6 mr-3 text-[#2C8780] group-data-[collapsible=icon]:mr-0 group-data-[collapsible=icon]:opacity-100 opacity-50" />
+                <span className="text-[#2C2C2C] transition-opacity duration-200 ease-linear font-semibold group-data-[collapsible=icon]:opacity-0">
                   Notificaciones
                 </span>
-                <div className="relative ml-2">
+                <div className="relative ml-2 group-data-[collapsible=icon]:hidden">
                   <div className="absolute inset-0 bg-[#2C8780] opacity-50 rounded"></div>
                   <Badge
                     className="relative text-[#2C2C2C] bg-transparent"
@@ -173,170 +187,164 @@ const DashboardPage: React.FC = () => {
                     12
                   </Badge>
                 </div>
-              </a>
+              </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <SidebarMenuItem className="mb-6">
-              <a
-                href="#"
-                className="flex items-center text-[#2C2C2C] p-2 rounded hover:bg-slate-100 hover:text-teal-600"
+            <SidebarMenuItem className="mb-6 group-data-[collapsible=icon]:mb-4">
+              <SidebarMenuButton
+                tooltip="Configuración"
+                className="flex items-center text-[#2C2C2C] p-2 rounded hover:bg-slate-100 hover:text-teal-600 group-data-[collapsible=icon]:justify-center"
                 onMouseEnter={(e) => {
-                  const Settingsicon =
+                  const settingsIcon =
                     e.currentTarget.querySelector(".Settings-icon");
-                  if (Settingsicon) {
-                    Settingsicon.classList.remove("opacity-50");
-                  }
+                  if (settingsIcon) settingsIcon.classList.remove("opacity-50");
                 }}
                 onMouseLeave={(e) => {
-                  const Settingsicon =
+                  const settingsIcon =
                     e.currentTarget.querySelector(".Settings-icon");
-                  if (Settingsicon) {
-                    Settingsicon.classList.add("opacity-50");
-                  }
+                  if (settingsIcon) settingsIcon.classList.add("opacity-50");
                 }}
               >
-                <Settings className="Settings-icon w-6 h-6 mr-3 text-[#2C8780] opacity-50" />
-                <span className="md:hidden lg:inline font-semibold">
+                <Settings className="Settings-icon w-6 h-6 mr-3 text-[#2C8780] group-data-[collapsible=icon]:mr-0 group-data-[collapsible=icon]:opacity-100 opacity-50" />
+                <span className="transition-opacity duration-200 ease-linear font-semibold group-data-[collapsible=icon]:opacity-0">
                   Configuración
                 </span>
-              </a>
+              </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <Separator className="my-4" />
+            <Separator className="my-4 group-data-[collapsible=icon]:hidden" />
 
-            <div className="flex items-center bg-[#4EADA1] rounded-lg p-3">
-              <Avatar className="h-10 w-10 mr-3">
-                <img
-                  src="https://ui-avatars.com/api/?name=Juanes+Coronell"
-                  alt="Avatar"
-                />
-              </Avatar>
-              <div className="flex-1">
-                <p className="font-medium text-white">Juanes Coronell</p>
-                <p className="text-xs text-white/70">Juanes@gmail.com</p>
-              </div>
+            <div className="flex items-center bg-[#4EADA1] rounded-lg p-3 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:bg-transparent">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-white hover:bg-[#57B8A5]"
-                  >
-                    <EllipsisVertical className="w-5 h-5" />
-                  </Button>
+                  <div className="flex items-center cursor-pointer">
+                    <Avatar className="h-10 w-10 mr-3 group-data-[collapsible=icon]:mr-0">
+                      <img
+                        src="https://ui-avatars.com/api/?name=Juanes+Coronell"
+                        alt="Avatar"
+                      />
+                    </Avatar>
+                    <div className="flex-1 group-data-[collapsible=icon]:hidden">
+                      <p className="font-medium text-white">
+                        {user?.username || "Juanes Coronell"}
+                      </p>
+                      <p className="text-xs text-white/70">
+                        {user?.email || "Juanes@gmail.com"}
+                      </p>
+                    </div>
+                  </div>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onSelect={handleLogout}>
-                    Cerrar sesión
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="text-slate-400"
-                    >
-                      <path d="M12 15l3-3m0 0l-3-3m3 3H4m5-4.751V7.2c0-1.12 0-1.68.218-2.108.192-.377.497-.682.874-.874C10.52 4 11.08 4 12.2 4h3.6c1.12 0 1.68 0 2.107.218.377.192.683.497.875.874.218.427.218.987.218 2.108v9.6c0 1.12 0 1.68-.218 2.108-.192.377-.498.682-.875.874-.427.218-.987.218-2.107.218h-3.6c-1.12 0-1.68 0-2.108-.218-.377-.192-.682-.497-.874-.874-.218-.428-.218-.987-.218-2.108v-.049" />
-                    </svg>
+                <DropdownMenuContent className="bg-[#1F2527] text-white border-none rounded-md p-2">
+                  <DropdownMenuLabel className="text-white">
+                    <p className="font-medium">
+                      {user?.username || "Juanes Coronell"}
+                    </p>
+                    <p className="text-xs text-white/70">
+                      {user?.email || "Juanes@gmail.com"}
+                    </p>
+                  </DropdownMenuLabel>
+                  <Separator className="my-2 bg-gray-600" />
+                  <DropdownMenuItem
+                    onSelect={handleLogout}
+                    className="text-white hover:bg-gray-700 rounded-md flex items-center"
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-2" />
+                    Logout
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           </SidebarFooter>
-          {/* Sidebar Trigger for mobile */}
-          <SidebarTrigger className="absolute top-4 right-0 translate-x-full z-20" />
         </Sidebar>
-      </SidebarProvider>
 
-      {/* Main Content */}
-      <div className="flex-1 overflow-auto p-4">
-        {/* Main two-column layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* First Column - 8/12 width on large screens */}
-          <div className="lg:col-span-8 space-y-6">
-            {/* Welcome Header */}
-            <div className="bg-white p-6 rounded-[14px] relative">
-              <div className="flex justify-between items-center">
-                <div
-                  className="flex flex-col justify-center items-start"
-                  style={{ height: "169px" }}
-                >
-                  <h1
-                    className="text-[2.19rem] font-medium text-[#0C0B0B] font-poppins text-left"
-                    style={{ width: "210.88px", height: "54.72px" }}
+        {/* Mobile Sidebar Trigger */}
+        <header className="p-4 md:hidden">
+          <SidebarTrigger />
+        </header>
+
+        {/* Main Content */}
+        <MainContent>
+          {/* Main two-column layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* First Column - 8/12 width on large screens */}
+            <div className="lg:col-span-8 space-y-6">
+              {/* Welcome Header */}
+              <div className="bg-white p-6 rounded-[14px] relative">
+                <div className="flex justify-between items-center">
+                  <div
+                    className="flex flex-col justify-center items-start"
+                    style={{ height: "169px" }}
                   >
-                    Hola Juanes !
-                  </h1>
-                  <p
-                    className="text-[12px] text-[#5A5A5A] font-poppins font-normal leading-6 text-left"
-                    style={{ width: "212.80px", height: "27.36px" }}
-                  >
-                    Me alegro de volver a verte.
-                  </p>
-                </div>
-                <div className="flex items-center justify-center">
-                  <div className="h-[169.32px]">
-                    <img
-                      src="../public/assets/img/Vector.svg"
-                      alt="Patrón geométrico decorativo"
-                      className="h-full w-auto object-contain"
-                    />
+                    <h1
+                      className="text-[2.19rem] font-medium text-[#0C0B0B] font-poppins text-left"
+                      style={{ width: "210.88px", height: "54.72px" }}
+                    >
+                      Hola {user?.username?.split(" ")[0] || "Juanes"} !
+                    </h1>
+                    <p
+                      className="text-[12px] text-[#5A5A5A] font-poppins font-normal leading-6 text-left"
+                      style={{ width: "212.80px", height: "27.36px" }}
+                    >
+                      Me alegro de volver a verte.
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-center">
+                    <div className="h-[169.32px]">
+                      <img
+                        src="../public/assets/img/Vector.svg"
+                        alt="Patrón geométrico decorativo"
+                        className="h-full w-auto object-contain"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
+
+              {/* Statistics Section */}
+              <div className="flex flex-wrap justify-between">
+                {statCardsData.map((data, index) => (
+                  <StatCard
+                    key={index}
+                    title={data.title}
+                    value={data.value}
+                    progress={data.progress}
+                    icon={data.icon}
+                    iconColor={data.iconColor}
+                    progressColor={data.progressColor}
+                  />
+                ))}
+              </div>
+
+              {/* Radar Chart */}
+              <div className="w-full">
+                <RadarChart />
+              </div>
             </div>
 
-            {/* Statistics Section */}
-            <div
-              className="flex flex-wrap justify-between
-"
-            >
-              {statCardsData.map((data, index) => (
-                <StatCard
-                  key={index}
-                  title={data.title}
-                  value={data.value}
-                  progress={data.progress}
-                  icon={data.icon}
-                  iconColor={data.iconColor}
-                  progressColor={data.progressColor}
+            {/* Second Column - 4/12 width on large screens */}
+            <div className="lg:col-span-4 space-y-6">
+              {/* Create Task Card */}
+              <div>
+                <CreateTaskCard
+                  onClick={() => {
+                    console.log("Crear nueva tarea");
+                  }}
                 />
-              ))}
-            </div>
+              </div>
 
-            {/* Radar Chart */}
-            <div className="w-full">
-              <RadarChart />
+              {/* Calendar Card */}
+              <div>
+                <CalendarCard date={date} setDate={setDate} />
+              </div>
+
+              {/* Timeline */}
+              <div>
+                <Timeline />
+              </div>
             </div>
           </div>
-
-          {/* Second Column - 4/12 width on large screens */}
-          <div className="lg:col-span-4 space-y-6">
-            {/* Create Task Card */}
-            <div>
-              <CreateTaskCard
-                onClick={() => {
-                  console.log("Crear nueva tarea");
-                }}
-              />
-            </div>
-
-            {/* Calendar Card */}
-            <div>
-              <CalendarCard date={date} setDate={setDate} />
-            </div>
-
-            {/* Timeline */}
-            <div>
-              <Timeline />
-            </div>
-          </div>
-        </div>
-      </div>
+        </MainContent>
+      </SidebarProvider>
     </div>
   );
 };

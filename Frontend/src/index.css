@@ -59,6 +59,10 @@ a:hover {
   color: #333333;
 }
 
+li {
+  list-style: none;
+}
+
 /* body {
   margin: 0;
   display: flex;
