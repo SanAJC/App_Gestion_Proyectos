@@ -97,12 +97,12 @@ const DashboardPage: React.FC = () => {
   ];
 
   return (
-    <div className="flex h-screen bg-slate-50">
+    <div className=" bg-[#f2f2f2]">
       {/* Sidebar Provider */}
       <SidebarProvider>
         {/* Sidebar */}
         <Sidebar
-          className="hidden md:block relative border-r bg-slate-50 border-slate-200 w-auto"
+          className="border-r bg-slate-50 border-slate-200 w-auto"
           collapsible="icon"
         >
           <SidebarHeader className="p-4 flex justify-between group-data-[collapsible=icon]:p-2">
@@ -265,7 +265,7 @@ const DashboardPage: React.FC = () => {
         {/* Main Content */}
         <MainContent>
           {/* Main two-column layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-hidden">
             {/* First Column - 8/12 width on large screens */}
             <div className="lg:col-span-8 space-y-6">
               {/* Welcome Header */}

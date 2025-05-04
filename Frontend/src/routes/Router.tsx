@@ -1,8 +1,9 @@
 // src/routes/Router.tsx
-import React, { useEffect } from "react";
+import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAppSelector } from "../hooks/useAppSelector";
 import PrivateRoute from "./PrivateRoute";
+import ForgotPasswordForm from "../components/auth/ForgotPasswordForm";
 
 // Importamos las páginas
 import LoginPage from "../pages/LoginPage";
@@ -31,6 +32,7 @@ const Router: React.FC = () => {
           }
         />
         <Route path="/github/callback" element={<GitHubCallbackPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordForm />} />
 
         {/* Rutas privadas */}
         <Route element={<PrivateRoute />}>
