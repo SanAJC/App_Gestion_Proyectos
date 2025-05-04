@@ -342,9 +342,11 @@ const DashboardPage: React.FC = () => {
               </div>
 
               {/* Timeline */}
-              <div>
-                <Timeline />
-              </div>
+              
+                <div className="h-[230px] overflow-y-auto pr-2 ">
+                  <Timeline />
+                </div>
+              
             </div>
           </div>
         </MainContent>
