@@ -1,9 +1,7 @@
 // src/components/dashboard/CalendarCard.tsx
 import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface CalendarCardProps {
   date: Date | undefined;
@@ -20,20 +18,12 @@ const CalendarCard: React.FC<CalendarCardProps> = ({ date, setDate }) => {
     : "";
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
+    <Card className="bg-[transparent] shadow-none border-none w-full h-full">
+      <CardHeader className="pb-1">
         <div className="flex justify-between items-center">
-          <CardTitle className="text-lg font-medium">{formattedDate}</CardTitle>
-          <div className="flex space-x-2">
-            <Button variant="outline" size="icon" className="h-8 w-8">
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="icon" className="h-8 w-8">
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
+          <CardTitle className="text-lg font-normal">{formattedDate}</CardTitle>
         </div>
-        <p className="text-lg font-medium">Today</p>
+        <p className="text-2xl font-medium text-left">Today</p>
       </CardHeader>
       <CardContent>
         <div className="w-full">

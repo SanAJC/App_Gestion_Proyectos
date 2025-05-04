@@ -32,9 +32,9 @@ import {
   FileText,
   Box,
   ChevronLeft,
-  BarChart2,
-  MessageSquare,
-  BarChart,
+  TrendingUp,
+  SquarePlus, 
+  SquareCheckBig,
 } from "lucide-react";
 
 // Import custom dashboard components
@@ -46,7 +46,7 @@ import Timeline from "@/components/dashboard/Timeline";
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
-  const [date, setDate] = useState<Date | undefined>(new Date("2021-04-11"));
+  const [date, setDate] = useState<Date | undefined>(new Date());
   const { user } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
 
@@ -74,25 +74,25 @@ const DashboardPage: React.FC = () => {
       title: "Lead coversation",
       value: "1,908",
       progress: 58,
-      icon: MessageSquare,
-      iconColor: "text-green-500",
-      progressColor: "bg-green-500",
+      icon: SquarePlus,
+      iconColor: "text-[#9BC440]",
+      progressColor: "bg-[#9BC440]",
     },
     {
       title: "Lead coversation",
       value: "58.98%",
       progress: 58,
-      icon: BarChart2,
-      iconColor: "text-blue-400",
-      progressColor: "bg-blue-400",
+      icon: TrendingUp,
+      iconColor: "text-[#89CAE7]",
+      progressColor: "bg-[#89CAE7]",
     },
     {
       title: "Lead coversation",
       value: "1,576",
-      progress: 58,
-      icon: BarChart,
-      iconColor: "text-yellow-400",
-      progressColor: "bg-yellow-400",
+      progress: 65,
+      icon: SquareCheckBig,
+      iconColor: "text-[#FECC0F]",
+      progressColor: "bg-[#FECC0F]",
     },
   ];
 
@@ -262,6 +262,10 @@ const DashboardPage: React.FC = () => {
           <SidebarTrigger />
         </header>
 
+
+        {/* DESDE AQUI INICIA EL CONTENIDO PRINCIPAL */}
+
+
         {/* Main Content */}
         <MainContent>
           {/* Main two-column layout */}
@@ -282,7 +286,7 @@ const DashboardPage: React.FC = () => {
                       Hola {user?.username?.split(" ")[0] || "Juanes"} !
                     </h1>
                     <p
-                      className="text-[12px] text-[#5A5A5A] font-poppins font-normal leading-6 text-left"
+                      className="line-clamp-3 md:line-clamp-4 text-[#5A5A5A] font-poppins font-normal leading-6 text-left"
                       style={{ width: "212.80px", height: "27.36px" }}
                     >
                       Me alegro de volver a verte.
@@ -322,10 +326,10 @@ const DashboardPage: React.FC = () => {
             </div>
 
             {/* Second Column - 4/12 width on large screens */}
-            <div className="lg:col-span-4 space-y-6">
+            <div className="lg:col-span-4 space-y-1">
               {/* Create Task Card */}
               <div>
-                <CreateTaskCard
+                <CreateTaskCard  
                   onClick={() => {
                     console.log("Crear nueva tarea");
                   }}

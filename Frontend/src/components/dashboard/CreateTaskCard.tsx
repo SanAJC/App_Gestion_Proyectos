@@ -22,12 +22,12 @@ const CreateTaskCard: React.FC<CreateTaskCardProps> = ({ onClick }) => {
     >
       <div className="flex justify-between items-center p-4 h-full">
         <div className="ml-2">
-          <h3 className="text-lg font-semibold font-poppins">Crear Tarea</h3>
+          <h3 className="text-lg font-medium font-poppins text-left">Crear Tarea</h3>
           <p className="text-sm font-normal font-poppins">Crear nueva tarea</p>
         </div>
         <div
-          className="flex items-center justify-center bg-white rounded-md h-13 w-13 text-[#0C0B0B]"
-          style={{ width: "52px", height: "52px" }}
+          className="flex items-center justify-center bg-white rounded-md h-10 w-10 text-[#0C0B0B]"
+          style={{ width: "40px", height: "40px" }}
         >
           <div className="relative w-full h-full flex items-center justify-center">
             <div className="w-6 h-0.5 bg-[#0C0B0B] rounded-lg absolute"></div>

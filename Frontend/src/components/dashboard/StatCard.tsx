@@ -32,7 +32,7 @@ const StatCard: React.FC<StatCardProps> = ({
             <span className="text-xs text-slate-500">{title}</span>
           </div>
           <div className="w-5 h-5 flex items-center justify-center">
-            <Icon className={`w-4 h-4 ${iconColor}`} />
+            <Icon className={`w-5 h-5 ${iconColor}`} />
           </div>
         </div>
 
@@ -44,7 +44,7 @@ const StatCard: React.FC<StatCardProps> = ({
               style={{ width: `${progress}%` }}
             ></div>
           </div>
-          <div className="text-right text-[10px] text-slate-500 mt-1">
+          <div className="text-right text-xs text-slate-500 mt-1">
             {progress}%
           </div>
         </div>
