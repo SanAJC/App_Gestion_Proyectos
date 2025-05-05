@@ -132,7 +132,7 @@ const DashboardPage: React.FC = () => {
                 className="flex items-center text-teal-600 font-medium p-2 rounded hover:bg-slate-100 group-data-[collapsible=icon]:justify-center"
               >
                 <Box className="w-6 h-6 mr-3 group-data-[collapsible=icon]:mr-0 group-data-[collapsible=icon]:opacity-100 opacity-50" />
-                <span className="transition-opacity duration-200 ease-linear font-semibold group-data-[collapsible=icon]:opacity-0">
+                <span className="transition-opacity duration-200 ease-linear font-normal group-data-[collapsible=icon]:opacity-0">
                   Dashboard
                 </span>
               </SidebarMenuButton>
@@ -152,7 +152,7 @@ const DashboardPage: React.FC = () => {
                 onClick={() => navigate("/projects")}
               >
                 <FileText className="file-icon w-6 h-6 mr-3 text-[#2C8780] group-data-[collapsible=icon]:mr-0 group-data-[collapsible=icon]:opacity-100 opacity-50" />
-                <span className="transition-opacity duration-200 ease-linear font-semibold group-data-[collapsible=icon]:opacity-0">
+                <span className="transition-opacity duration-200 ease-linear font-normal group-data-[collapsible=icon]:opacity-0">
                   Proyectos
                 </span>
               </SidebarMenuButton>
@@ -174,7 +174,7 @@ const DashboardPage: React.FC = () => {
                 }}
               >
                 <Bell className="Bell-icon w-6 h-6 mr-3 text-[#2C8780] group-data-[collapsible=icon]:mr-0 group-data-[collapsible=icon]:opacity-100 opacity-50" />
-                <span className="text-[#2C2C2C] transition-opacity duration-200 ease-linear font-semibold group-data-[collapsible=icon]:opacity-0">
+                <span className="text-[#2C2C2C] transition-opacity duration-200 ease-linear font-normal group-data-[collapsible=icon]:opacity-0">
                   Notificaciones
                 </span>
                 <div className="relative ml-2 group-data-[collapsible=icon]:hidden">
@@ -203,9 +203,10 @@ const DashboardPage: React.FC = () => {
                     e.currentTarget.querySelector(".Settings-icon");
                   if (settingsIcon) settingsIcon.classList.add("opacity-50");
                 }}
+                onClick={() => navigate("/settings")}
               >
                 <Settings className="Settings-icon w-6 h-6 mr-3 text-[#2C8780] group-data-[collapsible=icon]:mr-0 group-data-[collapsible=icon]:opacity-100 opacity-50" />
-                <span className="transition-opacity duration-200 ease-linear font-semibold group-data-[collapsible=icon]:opacity-0">
+                <span className="transition-opacity duration-200 ease-linear font-normal group-data-[collapsible=icon]:opacity-0">
                   Configuración
                 </span>
               </SidebarMenuButton>
