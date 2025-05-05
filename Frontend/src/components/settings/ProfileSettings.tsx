@@ -119,7 +119,7 @@ const ProfileSettings = () => {
                 onClick={() => navigate("/dashboard")}
               >
                 <Box className="w-6 h-6 mr-3 text-[#2C8780] group-data-[collapsible=icon]:mr-0" />
-                <span className="transition-opacity duration-200 ease-linear font-semibold group-data-[collapsible=icon]:opacity-0">
+                <span className="transition-opacity duration-200 ease-linear font-normal group-data-[collapsible=icon]:opacity-0">
                   Dashboard
                 </span>
               </SidebarMenuButton>
@@ -132,7 +132,7 @@ const ProfileSettings = () => {
                 onClick={() => navigate("/projects")}
               >
                 <FileText className="w-6 h-6 mr-3 text-[#2C8780] group-data-[collapsible=icon]:mr-0" />
-                <span className="transition-opacity duration-200 ease-linear font-semibold group-data-[collapsible=icon]:opacity-0">
+                <span className="transition-opacity duration-200 ease-linear font-normal group-data-[collapsible=icon]:opacity-0">
                   Proyectos
                 </span>
               </SidebarMenuButton>
@@ -146,7 +146,7 @@ const ProfileSettings = () => {
                 className="flex items-center text-[#2C2C2C] p-2 rounded hover:bg-slate-100 hover:text-teal-600 group-data-[collapsible=icon]:justify-center"
               >
                 <Bell className="w-6 h-6 mr-3 text-[#2C8780] group-data-[collapsible=icon]:mr-0" />
-                <span className="transition-opacity duration-200 ease-linear font-semibold group-data-[collapsible=icon]:opacity-0">
+                <span className="transition-opacity duration-200 ease-linear font-normal group-data-[collapsible=icon]:opacity-0">
                   Notificaciones
                 </span>
                 <div className="relative ml-2 group-data-[collapsible=icon]:hidden">
@@ -168,7 +168,7 @@ const ProfileSettings = () => {
                 className="flex items-center text-teal-600 font-medium p-2 rounded hover:bg-slate-100 group-data-[collapsible=icon]:justify-center"
               >
                 <Settings className="w-6 h-6 mr-3 group-data-[collapsible=icon]:mr-0" />
-                <span className="transition-opacity duration-200 ease-linear font-semibold group-data-[collapsible=icon]:opacity-0">
+                <span className="transition-opacity duration-200 ease-linear font-normal group-data-[collapsible=icon]:opacity-0">
                   Configuración
                 </span>
               </SidebarMenuButton>

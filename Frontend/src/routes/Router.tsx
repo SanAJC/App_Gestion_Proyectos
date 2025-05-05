@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAppSelector } from "../hooks/useAppSelector";
 import PrivateRoute from "./PrivateRoute";
 import ForgotPasswordForm from "../components/auth/ForgotPasswordForm";
+import ProjectBoardPage from "../pages/ProjectBoardPage"; // Importamos la nueva página
 
 // Importamos las páginas
 import LoginPage from "../pages/LoginPage";
@@ -12,6 +13,7 @@ import DashboardPage from "../pages/DashboardPage";
 import ProjectsPage from "../pages/ProjectsPage";
 import GitHubCallbackPage from "../pages/GitHubCallbackPage";
 import NotFoundPage from "../pages/NotFoundPage";
+import ProfileSettings from "../components/settings/ProfileSettings";
 
 const Router: React.FC = () => {
   const { isAuthenticated } = useAppSelector((state) => state.auth);
@@ -38,7 +40,9 @@ const Router: React.FC = () => {
         {/* Rutas privadas */}
         <Route element={<PrivateRoute />}>
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/projects" element={<ProjectsPage />} />{" "}
+          <Route path="/projects" element={<ProjectsPage />} />
+          <Route path="/project/:projectId" element={<ProjectBoardPage />} />
+          <Route path="/settings" element={<ProfileSettings />} />
         </Route>
 
         {/* Ruta principal y 404 */}
