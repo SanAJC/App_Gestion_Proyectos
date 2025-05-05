@@ -101,8 +101,17 @@ const ProjectsPage: React.FC = () => {
 
   // Componente para la tarjeta de proyecto
   const ProjectCard = ({ project }: { project: Project }) => {
+    const navigate = useNavigate();
+  
+    const handleCardClick = () => {
+      navigate(`/project/${project.id}`);
+    };
+  
     return (
-      <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200">
+      <div 
+        className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer"
+        onClick={handleCardClick}
+      >
         <div className="relative">
           <img
             src={project.image}
