@@ -12,6 +12,7 @@ import DashboardPage from "../pages/DashboardPage";
 import ProjectsPage from "../pages/ProjectsPage"; // Importamos la nueva página
 import GitHubCallbackPage from "../pages/GitHubCallbackPage";
 import NotFoundPage from "../pages/NotFoundPage";
+import ProjectBoardPage from "../pages/ProjectBoardPage"; // Importamos la nueva página
 
 const Router: React.FC = () => {
   const { isAuthenticated } = useAppSelector((state) => state.auth);
@@ -38,7 +39,8 @@ const Router: React.FC = () => {
         {/* Rutas privadas */}
         <Route element={<PrivateRoute />}>
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/projects" element={<ProjectsPage />} />{" "}
+          <Route path="/projects" element={<ProjectsPage />} />
+          <Route path="/project/:projectId" element={<ProjectBoardPage />} />
         </Route>
 
         {/* Ruta principal y 404 */}
