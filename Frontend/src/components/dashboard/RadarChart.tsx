@@ -19,8 +19,8 @@ const RadarChart: React.FC = () => {
           Showing total visitors for the last 6 months
         </p>
       </CardHeader>
-      <CardContent className="pb-2">
-        <div className="flex items-center justify-center h-40">
+      <CardContent className="pb-2 h-[10.5rem]">
+        <div className="flex items-center justify-center h-full w-full">
           <svg className="w-full max-h-full" viewBox="0 0 400 250">
             <g transform="translate(200, 125)">
               <polygon

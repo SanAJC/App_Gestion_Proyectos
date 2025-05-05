@@ -9,6 +9,7 @@ import ForgotPasswordForm from "../components/auth/ForgotPasswordForm";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import DashboardPage from "../pages/DashboardPage";
+import ProjectsPage from "../pages/ProjectsPage"; // Importamos la nueva página
 import GitHubCallbackPage from "../pages/GitHubCallbackPage";
 import NotFoundPage from "../pages/NotFoundPage";
 
@@ -37,7 +38,7 @@ const Router: React.FC = () => {
         {/* Rutas privadas */}
         <Route element={<PrivateRoute />}>
           <Route path="/dashboard" element={<DashboardPage />} />
-          {/* Aquí puedes agregar más rutas privadas */}
+          <Route path="/projects" element={<ProjectsPage />} />{" "}
         </Route>
 
         {/* Ruta principal y 404 */}

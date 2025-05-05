@@ -32,23 +32,53 @@ import {
   FileText,
   Box,
   ChevronLeft,
-  TrendingUp,
-  SquarePlus,
-  SquareCheckBig,
+  Clock,
 } from "lucide-react";
 
-// Import custom dashboard components
-import StatCard from "@/components/dashboard/StatCard";
-import RadarChart from "@/components/dashboard/RadarChart";
-import CalendarCard from "@/components/dashboard/CalendarCard";
-import CreateTaskCard from "@/components/dashboard/CreateTaskCard";
-import Timeline from "@/components/dashboard/Timeline";
+// Definimos el tipo de proyecto
+interface Project {
+  id: string;
+  title: string;
+  image: string;
+  type: string;
+}
 
-const DashboardPage: React.FC = () => {
+const ProjectsPage: React.FC = () => {
   const navigate = useNavigate();
-  const [date, setDate] = useState<Date | undefined>(new Date());
   const { user } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
+
+  // Estado para los proyectos
+  const [projects] = useState<Project[]>([
+    {
+      id: "1",
+      title: "Desarrollo APP mobil",
+      image:
+        "https://www.visual-planning.com/es/wp-content/uploads/2020/11/Cuales-son-las-caracteristicas-imprescindibles-de-un-software-de-gestion-de-proyectos-Visual-Planning.jpg",
+      type: "mobile",
+    },
+    {
+      id: "2",
+      title: "Diseño UI",
+      image:
+        "https://3530961.fs1.hubspotusercontent-na1.net/hub/3530961/hubfs/Blog_Pensemos_707x282px_8.jpg?width=800&height=346&name=Blog_Pensemos_707x282px_8.jpg",
+      type: "design",
+    },
+    {
+      id: "3",
+      title: "Desarrollo web",
+      image:
+        "https://gestiondeproyectos340245913.wordpress.com/wp-content/uploads/2021/05/promo-image.1547668953.png?w=750",
+      type: "web",
+    },
+    {
+      id: "4",
+      title: "Sistema de diseño",
+      image:
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSub_8WUp5xKfX9h8fwCUcQvp1GOXCoUyA0XnESEUu0sf-0a4kOvMm1lVZwGs8pM23Jd_g&usqp=CAU",
+      type: "system",
+    },
+  ]);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -69,32 +99,23 @@ const DashboardPage: React.FC = () => {
     );
   };
 
-  const statCardsData = [
-    {
-      title: "Lead coversation",
-      value: "1,908",
-      progress: 58,
-      icon: SquarePlus,
-      iconColor: "text-[#9BC440]",
-      progressColor: "bg-[#9BC440]",
-    },
-    {
-      title: "Lead coversation",
-      value: "58.98%",
-      progress: 58,
-      icon: TrendingUp,
-      iconColor: "text-[#89CAE7]",
-      progressColor: "bg-[#89CAE7]",
-    },
-    {
-      title: "Lead coversation",
-      value: "1,576",
-      progress: 65,
-      icon: SquareCheckBig,
-      iconColor: "text-[#FECC0F]",
-      progressColor: "bg-[#FECC0F]",
-    },
-  ];
+  // Componente para la tarjeta de proyecto
+  const ProjectCard = ({ project }: { project: Project }) => {
+    return (
+      <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200">
+        <div className="relative">
+          <img
+            src={project.image}
+            alt={project.title}
+            className="w-full h-32 object-cover"
+          />
+        </div>
+        <div className="p-4">
+          <h3 className="text-lg font-medium text-gray-800">{project.title}</h3>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="bg-[#f2f2f2] h-screen flex flex-col">
@@ -125,33 +146,35 @@ const DashboardPage: React.FC = () => {
                 className="pl-10 bg-[#2C8780] border-none text-white placeholder-white focus:ring-0 focus:outline-none"
               />
             </div>
+
             <SidebarMenuItem className="mb-2 group-data-[collapsible=icon]:mb-4">
               <SidebarMenuButton
                 tooltip="Dashboard"
-                isActive={true}
-                className="flex items-center text-teal-600 font-medium p-2 rounded hover:bg-slate-100 group-data-[collapsible=icon]:justify-center"
+                className="flex items-center text-[#2C2C2C] p-2 rounded hover:bg-slate-100 hover:text-teal-600 group-data-[collapsible=icon]:justify-center"
+                onMouseEnter={(e) => {
+                  const boxIcon = e.currentTarget.querySelector(".box-icon");
+                  if (boxIcon) boxIcon.classList.remove("opacity-50");
+                }}
+                onMouseLeave={(e) => {
+                  const boxIcon = e.currentTarget.querySelector(".box-icon");
+                  if (boxIcon) boxIcon.classList.add("opacity-50");
+                }}
+                onClick={() => navigate("/dashboard")}
               >
-                <Box className="w-6 h-6 mr-3 group-data-[collapsible=icon]:mr-0 group-data-[collapsible=icon]:opacity-100 opacity-50" />
+                <Box className="box-icon w-6 h-6 mr-3 text-[#2C8780] group-data-[collapsible=icon]:mr-0 group-data-[collapsible=icon]:opacity-100 opacity-50" />
                 <span className="transition-opacity duration-200 ease-linear font-semibold group-data-[collapsible=icon]:opacity-0">
                   Dashboard
                 </span>
               </SidebarMenuButton>
             </SidebarMenuItem>
+
             <SidebarMenuItem className="mb-2 group-data-[collapsible=icon]:mb-4">
               <SidebarMenuButton
                 tooltip="Proyectos"
-                className="flex items-center text-[#2C2C2C] p-2 rounded hover:bg-slate-100 hover:text-teal-600 group-data-[collapsible=icon]:justify-center"
-                onMouseEnter={(e) => {
-                  const fileIcon = e.currentTarget.querySelector(".file-icon");
-                  if (fileIcon) fileIcon.classList.remove("opacity-50");
-                }}
-                onMouseLeave={(e) => {
-                  const fileIcon = e.currentTarget.querySelector(".file-icon");
-                  if (fileIcon) fileIcon.classList.add("opacity-50");
-                }}
-                onClick={() => navigate("/projects")}
+                isActive={true}
+                className="flex items-center text-teal-600 font-medium p-2 rounded hover:bg-slate-100 group-data-[collapsible=icon]:justify-center"
               >
-                <FileText className="file-icon w-6 h-6 mr-3 text-[#2C8780] group-data-[collapsible=icon]:mr-0 group-data-[collapsible=icon]:opacity-100 opacity-50" />
+                <FileText className="w-6 h-6 mr-3 group-data-[collapsible=icon]:mr-0 group-data-[collapsible=icon]:opacity-100 opacity-50" />
                 <span className="transition-opacity duration-200 ease-linear font-semibold group-data-[collapsible=icon]:opacity-0">
                   Proyectos
                 </span>
@@ -261,88 +284,19 @@ const DashboardPage: React.FC = () => {
           <SidebarTrigger />
         </header>
 
-        {/* DESDE AQUI INICIA EL CONTENIDO PRINCIPAL */}
-
         {/* Main Content */}
         <MainContent>
-          {/* Main two-column layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full overflow-y-auto">
-            {/* First Column - 8/12 width on large screens */}
-            <div className="lg:col-span-8 space-y-6">
-              {/* Welcome Header */}
-              <div className="bg-white p-6 rounded-[14px] relative">
-                <div className="flex justify-between items-center">
-                  <div
-                    className="flex flex-col justify-center items-start"
-                    style={{ height: "169px" }}
-                  >
-                    <h1
-                      className="text-[2.19rem] font-medium text-[#0C0B0B] font-poppins text-left"
-                      style={{ width: "210.88px", height: "54.72px" }}
-                    >
-                      Hola {user?.username?.split(" ")[0] || "Juanes"} !
-                    </h1>
-                    <p
-                      className="line-clamp-3 md:line-clamp-4 text-[#5A5A5A] font-poppins font-normal leading-6 text-left"
-                      style={{ width: "212.80px", height: "27.36px" }}
-                    >
-                      Me alegro de volver a verte.
-                    </p>
-                  </div>
-                  <div className="flex items-center justify-center">
-                    <div className="h-[169.32px]">
-                      <img
-                        src="../public/assets/img/Vector.svg"
-                        alt="Patrón geométrico decorativo"
-                        className="h-full w-auto object-contain"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
+          {/* Header with Proyectos title */}
+          <div className="flex items-center mb-6">
+            <Clock className="text-teal-600 mr-2" size={24} />
+            <h1 className="text-2xl font-semibold text-gray-800">Proyectos</h1>
+          </div>
 
-              {/* Statistics Section */}
-              <div className="flex flex-wrap justify-between">
-                {statCardsData.map((data, index) => (
-                  <StatCard
-                    key={index}
-                    title={data.title}
-                    value={data.value}
-                    progress={data.progress}
-                    icon={data.icon}
-                    iconColor={data.iconColor}
-                    progressColor={data.progressColor}
-                  />
-                ))}
-              </div>
-
-              {/* Radar Chart */}
-              <div className="w-full">
-                <RadarChart />
-              </div>
-            </div>
-
-            {/* Second Column - 4/12 width on large screens */}
-            <div className="lg:col-span-4 space-y-1">
-              {/* Create Task Card */}
-              <div>
-                <CreateTaskCard
-                  onClick={() => {
-                    console.log("Crear nueva tarea");
-                  }}
-                />
-              </div>
-
-              {/* Calendar Card */}
-              <div>
-                <CalendarCard date={date} setDate={setDate} />
-              </div>
-
-              {/* Timeline */}
-              <div className="h-[200px] overflow-y-auto pr-2">
-                <Timeline />
-              </div>
-            </div>
+          {/* Projects Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {projects.map((project) => (
+              <ProjectCard key={project.id} project={project} />
+            ))}
           </div>
         </MainContent>
       </SidebarProvider>
@@ -350,4 +304,4 @@ const DashboardPage: React.FC = () => {
   );
 };
 
-export default DashboardPage;
+export default ProjectsPage;
