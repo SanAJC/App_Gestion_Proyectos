@@ -278,7 +278,7 @@ const DashboardPage: React.FC = () => {
                     style={{ height: "169px" }}
                   >
                     <h1
-                      className="text-[2.19rem] font-medium text-[#0C0B0B] font-poppins text-left"
+                      className="text-3xl font-bol text-[#0C0B0B] font-poppins text-left"
                       style={{ width: "210.88px", height: "54.72px" }}
                     >
                       Hola {user?.username?.split(" ")[0] || "Juanes"} !
