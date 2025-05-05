@@ -17,7 +17,7 @@ type Task = {
     return (
       <div className="px-6 mt-4">
         <div className="bg-white rounded-lg border border-[#EBEEF2] overflow-hidden">
-          <table className="w-full">
+          <table className="w-full text-left">
             <thead>
               <tr className="bg-[#FAFBFC] border-b border-[#EBEEF2]">
                 <th className="text-left py-3 px-4 text-[#1F2633] text-xs font-semibold">Tarea</th>
