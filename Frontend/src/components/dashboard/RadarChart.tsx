@@ -11,7 +11,7 @@ import {
 const RadarChart: React.FC = () => {
   return (
     <Card>
-      <CardHeader className="pb-2">
+      <CardHeader className="pb-1">
         <CardTitle className="text-lg font-medium">
           Radar Chart - Multiple
         </CardTitle>
@@ -19,8 +19,8 @@ const RadarChart: React.FC = () => {
           Showing total visitors for the last 6 months
         </p>
       </CardHeader>
-      <CardContent>
-        <div className="flex items-center justify-center h-64">
+      <CardContent className="pb-2">
+        <div className="flex items-center justify-center h-40">
           <svg className="w-full max-h-full" viewBox="0 0 400 250">
             <g transform="translate(200, 125)">
               <polygon

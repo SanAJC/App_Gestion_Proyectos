@@ -33,7 +33,7 @@ import {
   Box,
   ChevronLeft,
   TrendingUp,
-  SquarePlus, 
+  SquarePlus,
   SquareCheckBig,
 } from "lucide-react";
 
@@ -60,7 +60,7 @@ const DashboardPage: React.FC = () => {
     const { state } = useSidebar();
     return (
       <div
-        className={`flex-1 overflow-auto p-4 transition-all duration-200 ease-linear ${
+        className={`flex-1 overflow-auto pt-4 px-4 pb-0 transition-all duration-200 ease-linear ${
           state === "collapsed" ? "md:ml-12" : ""
         }`}
       >
@@ -262,9 +262,7 @@ const DashboardPage: React.FC = () => {
           <SidebarTrigger />
         </header>
 
-
         {/* DESDE AQUI INICIA EL CONTENIDO PRINCIPAL */}
-
 
         {/* Main Content */}
         <MainContent>
@@ -329,7 +327,7 @@ const DashboardPage: React.FC = () => {
             <div className="lg:col-span-4 space-y-1">
               {/* Create Task Card */}
               <div>
-                <CreateTaskCard  
+                <CreateTaskCard
                   onClick={() => {
                     console.log("Crear nueva tarea");
                   }}
@@ -342,11 +340,10 @@ const DashboardPage: React.FC = () => {
               </div>
 
               {/* Timeline */}
-              
-                <div className="h-[230px] overflow-y-auto pr-2 ">
-                  <Timeline />
-                </div>
-              
+
+              <div className="h-[200px] overflow-y-auto pr-2 ">
+                <Timeline />
+              </div>
             </div>
           </div>
         </MainContent>
