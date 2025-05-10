@@ -43,12 +43,16 @@ import RadarChart from "@/components/dashboard/RadarChart";
 import CalendarCard from "@/components/dashboard/CalendarCard";
 import CreateTaskCard from "@/components/dashboard/CreateTaskCard";
 import Timeline from "@/components/dashboard/Timeline";
+import CreateTaskModal from "@/components/boardTrello/create-task-modal";
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const { user } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
+
+  // Estado para el modal de tarea
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -95,6 +99,12 @@ const DashboardPage: React.FC = () => {
       progressColor: "bg-[#FECC0F]",
     },
   ];
+
+  // Guardar tarea (aquí solo mostramos un alert, puedes conectar a una API o estado global)
+  const handleSaveTask = (task: any) => {
+    alert("Tarea creada con éxito: " + task.title);
+    setIsTaskModalOpen(false);
+  };
 
   return (
     <div className="bg-[#f2f2f2] h-screen flex flex-col">
@@ -160,49 +170,10 @@ const DashboardPage: React.FC = () => {
           </SidebarContent>
 
           <SidebarFooter className="mt-auto p-4 group-data-[collapsible=icon]:p-2">
-            <SidebarMenuItem className="mb-4 group-data-[collapsible=icon]:mb-4">
-              <SidebarMenuButton
-                tooltip="Notificaciones"
-                className="flex items-center text-slate-600 p-2 rounded hover:bg-slate-100 hover:text-teal-600 group-data-[collapsible=icon]:justify-center"
-                onMouseEnter={(e) => {
-                  const bellIcon = e.currentTarget.querySelector(".Bell-icon");
-                  if (bellIcon) bellIcon.classList.remove("opacity-50");
-                }}
-                onMouseLeave={(e) => {
-                  const bellIcon = e.currentTarget.querySelector(".Bell-icon");
-                  if (bellIcon) bellIcon.classList.add("opacity-50");
-                }}
-              >
-                <Bell className="Bell-icon w-6 h-6 mr-3 text-[#2C8780] group-data-[collapsible=icon]:mr-0 group-data-[collapsible=icon]:opacity-100 opacity-50" />
-                <span className="text-[#2C2C2C] transition-opacity duration-200 ease-linear font-normal group-data-[collapsible=icon]:opacity-0">
-                  Notificaciones
-                </span>
-                <div className="relative ml-2 group-data-[collapsible=icon]:hidden">
-                  <div className="absolute inset-0 bg-[#2C8780] opacity-50 rounded"></div>
-                  <Badge
-                    className="relative text-[#2C2C2C] bg-transparent"
-                    variant="default"
-                  >
-                    12
-                  </Badge>
-                </div>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            <SidebarMenuItem className="mb-6 group-data-[collapsible=icon]:mb-4">
+            <SidebarMenuItem>
               <SidebarMenuButton
                 tooltip="Configuración"
-                className="flex items-center text-[#2C2C2C] p-2 rounded hover:bg-slate-100 hover:text-teal-600 group-data-[collapsible=icon]:justify-center"
-                onMouseEnter={(e) => {
-                  const settingsIcon =
-                    e.currentTarget.querySelector(".Settings-icon");
-                  if (settingsIcon) settingsIcon.classList.remove("opacity-50");
-                }}
-                onMouseLeave={(e) => {
-                  const settingsIcon =
-                    e.currentTarget.querySelector(".Settings-icon");
-                  if (settingsIcon) settingsIcon.classList.add("opacity-50");
-                }}
+                className="flex items-center text-[#2C2C2C] p-2 rounded hover:bg-slate-100 group-data-[collapsible=icon]:justify-center"
                 onClick={() => navigate("/settings")}
               >
                 <Settings className="Settings-icon w-6 h-6 mr-3 text-[#2C8780] group-data-[collapsible=icon]:mr-0 group-data-[collapsible=icon]:opacity-100 opacity-50" />
@@ -328,9 +299,7 @@ const DashboardPage: React.FC = () => {
               {/* Create Task Card */}
               <div>
                 <CreateTaskCard
-                  onClick={() => {
-                    console.log("Crear nueva tarea");
-                  }}
+                  onClick={() => setIsTaskModalOpen(true)}
                 />
               </div>
 
@@ -347,6 +316,13 @@ const DashboardPage: React.FC = () => {
           </div>
         </MainContent>
       </SidebarProvider>
+
+      {/* Modal para crear tarea */}
+      <CreateTaskModal
+        isOpen={isTaskModalOpen}
+        onClose={() => setIsTaskModalOpen(false)}
+        onSave={handleSaveTask}
+      />
     </div>
   );
 };

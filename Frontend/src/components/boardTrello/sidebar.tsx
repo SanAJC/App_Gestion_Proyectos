@@ -82,7 +82,7 @@ const Sidebar: React.FC = () => {
             onClick={() => navigate("/dashboard")}
           >
             <Box className="box-icon w-6 h-6 mr-3 text-[#2C8780] group-data-[collapsible=icon]:mr-0 group-data-[collapsible=icon]:opacity-100 opacity-50" />
-            <span className="transition-opacity duration-200 ease-linear font-semibold group-data-[collapsible=icon]:opacity-0">
+            <span className="transition-opacity duration-200 ease-linear font-normal group-data-[collapsible=icon]:opacity-0">
               Dashboard
             </span>
           </SidebarMenuButton>
@@ -95,7 +95,7 @@ const Sidebar: React.FC = () => {
             className="flex items-center text-teal-600 font-medium p-2 rounded hover:bg-slate-100 group-data-[collapsible=icon]:justify-center"
           >
             <FileText className="w-6 h-6 mr-3 group-data-[collapsible=icon]:mr-0 group-data-[collapsible=icon]:opacity-100 opacity-50" />
-            <span className="transition-opacity duration-200 ease-linear font-semibold group-data-[collapsible=icon]:opacity-0">
+            <span className="transition-opacity duration-200 ease-linear font-normal group-data-[collapsible=icon]:opacity-0">
               Proyectos
             </span>
           </SidebarMenuButton>
@@ -103,66 +103,26 @@ const Sidebar: React.FC = () => {
       </SidebarContent>
 
       <SidebarFooter className="mt-auto p-4 group-data-[collapsible=icon]:p-2">
-        <SidebarMenuItem className="mb-4 group-data-[collapsible=icon]:mb-4">
-          <SidebarMenuButton
-            tooltip="Notificaciones"
-            className="flex items-center text-slate-600 p-2 rounded hover:bg-slate-100 hover:text-teal-600 group-data-[collapsible=icon]:justify-center"
-            onMouseEnter={(e) => {
-              const bellIcon = e.currentTarget.querySelector(".Bell-icon");
-              if (bellIcon) bellIcon.classList.remove("opacity-50");
-            }}
-            onMouseLeave={(e) => {
-              const bellIcon = e.currentTarget.querySelector(".Bell-icon");
-              if (bellIcon) bellIcon.classList.add("opacity-50");
-            }}
-          >
-            <Bell className="Bell-icon w-6 h-6 mr-3 text-[#2C8780] group-data-[collapsible=icon]:mr-0 group-data-[collapsible=icon]:opacity-100 opacity-50" />
-            <span className="text-[#2C2C2C] transition-opacity duration-200 ease-linear font-semibold group-data-[collapsible=icon]:opacity-0">
-              Notificaciones
-            </span>
-            <div className="relative ml-2 group-data-[collapsible=icon]:hidden">
-              <div className="absolute inset-0 bg-[#2C8780] opacity-50 rounded"></div>
-              <Badge
-                className="relative text-[#2C2C2C] bg-transparent"
-                variant="default"
-              >
-                12
-              </Badge>
-            </div>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-
-        <SidebarMenuItem className="mb-6 group-data-[collapsible=icon]:mb-4">
+        <SidebarMenuItem>
           <SidebarMenuButton
             tooltip="Configuración"
-            className="flex items-center text-[#2C2C2C] p-2 rounded hover:bg-slate-100 hover:text-teal-600 group-data-[collapsible=icon]:justify-center"
-            onMouseEnter={(e) => {
-              const settingsIcon =
-                e.currentTarget.querySelector(".Settings-icon");
-              if (settingsIcon) settingsIcon.classList.remove("opacity-50");
-            }}
-            onMouseLeave={(e) => {
-              const settingsIcon =
-                e.currentTarget.querySelector(".Settings-icon");
-              if (settingsIcon) settingsIcon.classList.add("opacity-50");
-            }}
+            className="flex items-center text-[#2C2C2C] p-2 rounded hover:bg-slate-100 group-data-[collapsible=icon]:justify-center"
+            onClick={() => navigate("/settings")}
           >
             <Settings className="Settings-icon w-6 h-6 mr-3 text-[#2C8780] group-data-[collapsible=icon]:mr-0 group-data-[collapsible=icon]:opacity-100 opacity-50" />
-            <span className="transition-opacity duration-200 ease-linear font-semibold group-data-[collapsible=icon]:opacity-0">
+            <span className="transition-opacity duration-200 ease-linear font-normal group-data-[collapsible=icon]:opacity-0">
               Configuración
             </span>
           </SidebarMenuButton>
         </SidebarMenuItem>
-
         <Separator className="my-4 group-data-[collapsible=icon]:hidden" />
-
         <div className="flex items-center bg-[#4EADA1] rounded-lg p-3 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:bg-transparent">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <div className="flex items-center cursor-pointer">
                 <Avatar className="h-10 w-10 mr-3 group-data-[collapsible=icon]:mr-0">
                   <img
-                    src="https://ui-avatars.com/api/?name=Juanes+Coronell"
+                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user?.username || 'Juanes Coronell')}`}
                     alt="Avatar"
                   />
                 </Avatar>

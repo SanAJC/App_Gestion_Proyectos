@@ -140,28 +140,7 @@ const ProfileSettings = () => {
           </SidebarContent>
 
           <SidebarFooter className="mt-auto p-4 group-data-[collapsible=icon]:p-2">
-            <SidebarMenuItem className="mb-4 group-data-[collapsible=icon]:mb-4">
-              <SidebarMenuButton
-                tooltip="Notificaciones"
-                className="flex items-center text-[#2C2C2C] p-2 rounded hover:bg-slate-100 hover:text-teal-600 group-data-[collapsible=icon]:justify-center"
-              >
-                <Bell className="w-6 h-6 mr-3 text-[#2C8780] group-data-[collapsible=icon]:mr-0" />
-                <span className="transition-opacity duration-200 ease-linear font-normal group-data-[collapsible=icon]:opacity-0">
-                  Notificaciones
-                </span>
-                <div className="relative ml-2 group-data-[collapsible=icon]:hidden">
-                  <div className="absolute inset-0 bg-[#2C8780] opacity-50 rounded"></div>
-                  <Badge
-                    className="relative text-[#2C2C2C] bg-transparent"
-                    variant="default"
-                  >
-                    12
-                  </Badge>
-                </div>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            <SidebarMenuItem className="mb-6 group-data-[collapsible=icon]:mb-4">
+            <SidebarMenuItem>
               <SidebarMenuButton
                 tooltip="Configuración"
                 isActive={true}

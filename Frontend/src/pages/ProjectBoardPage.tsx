@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { Pencil, Search,  LayoutGrid, List, Lock } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Pencil, Search,  LayoutGrid, List, Github } from "lucide-react";
 import BoardView from "@/components/boardTrello/board-view";
 import ListView from "@/components/boardTrello/list-view";
 import CreateTaskModal from "@/components/boardTrello/create-task-modal";
 import Sidebar from "@/components/boardTrello/sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 // Tipos para nuestros datos
 type Task = {
@@ -175,6 +176,28 @@ export default function ProjectBoardPage() {
   const [modalInitialStatus, setModalInitialStatus] = useState<
     "to-do" | "in-process" | "done" | "to-verify"
   >("to-do");
+  const [isGithubSheetOpen, setIsGithubSheetOpen] = useState(false);
+  const [githubBranches, setGithubBranches] = useState<string[]>([]);
+  const [githubLoading, setGithubLoading] = useState(false);
+  const [githubError, setGithubError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isGithubSheetOpen) {
+      setGithubLoading(true);
+      setGithubError(null);
+      // Ejemplo usando fetch directamente a la API pública de GitHub
+      fetch("https://api.github.com/repos/empresa/proyecto-1/branches")
+        .then(res => res.json())
+        .then(data => {
+          setGithubBranches(data.map((b: any) => b.name));
+          setGithubLoading(false);
+        })
+        .catch(err => {
+          setGithubError("Error al cargar ramas");
+          setGithubLoading(false);
+        });
+    }
+  }, [isGithubSheetOpen]);
 
   // Función para manejar el drag and drop
   const onDragEnd = (result: any) => {
@@ -345,12 +368,15 @@ export default function ProjectBoardPage() {
                 <span className="text-xs font-medium">Lista</span>
               </button>
             </div>
-            <div className="h-10 px-4 py-2 bg-white rounded-lg border border-[#EBEEF2] flex items-center gap-2">
-              <Lock size={16} className="text-[#C7CED9]" />
+            <button
+              onClick={() => setIsGithubSheetOpen(true)}
+              className="h-10 px-4 py-2 bg-white rounded-lg border border-[#EBEEF2] flex items-center gap-2"
+            >
+              <Github size={16} className="text-[#C7CED9]" />
               <span className="text-[#98A2B2] text-xs font-medium">
-                Límite de acceso
+                informacion del repositorio
               </span>
-            </div>
+            </button>
           </div>
 
           <div className="flex items-center gap-4">
@@ -403,6 +429,48 @@ export default function ProjectBoardPage() {
         onSave={handleSaveTask}
         initialStatus={modalInitialStatus}
       />
+
+      {/* Sheet para información de GitHub */}
+      <Sheet open={isGithubSheetOpen} onOpenChange={setIsGithubSheetOpen}>
+        <SheetContent side="right" className="max-w-xl w-full bg-white border-none shadow-xl p-8 flex flex-col items-center justify-start">
+          <SheetHeader className="w-full mb-4">
+            <SheetTitle className="text-2xl font-bold text-[#1F2633]">Información del repositorio</SheetTitle>
+          </SheetHeader>
+          <div className="flex flex-col gap-6 w-full">
+            {/* Ramas activas */}
+            <div className="bg-[#FAFBFC] rounded-lg p-6 shadow border-none">
+              <h3 className="font-bold text-lg mb-4 text-[#1F2633]">Ramas activas</h3>
+              {githubLoading ? (
+                <p>Cargando ramas...</p>
+              ) : githubError ? (
+                <p className="text-red-500">{githubError}</p>
+              ) : (
+                <ul className="space-y-2">
+                  {githubBranches.map(branch => (
+                    <li key={branch} className="flex items-center justify-between">
+                      <span className="font-mono text-blue-700">{branch}</span>
+                      <span className="ml-2 px-2 py-1 text-xs bg-green-100 text-green-700 rounded">Producción</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            {/* Repositorio */}
+            <div className="bg-[#FAFBFC] rounded-lg p-6 shadow border-none">
+              <h3 className="font-bold text-lg mb-4 text-[#1F2633]">Repositorio</h3>
+              <p>
+                <a href="https://github.com/empresa/proyecto-1" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                  github.com/empresa/proyecto-1
+                </a>
+              </p>
+              <p className="text-sm text-gray-500 mt-2">Último commit: hace 2h</p>
+              <a href="https://github.com/empresa/proyecto-1" target="_blank" rel="noopener noreferrer" className="mt-2 inline-block px-3 py-1 border rounded text-xs bg-white hover:bg-gray-50">
+                Ver en GitHub
+              </a>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
