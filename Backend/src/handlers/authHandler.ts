@@ -202,7 +202,7 @@ export const githubCallback = async (
     res.redirect(
       `${FRONTEND_URL}/github/callback?token=${customToken}&githubToken=${encodeURIComponent(
         encryptedToken
-      )}`
+      )}&user=${encodeURIComponent(JSON.stringify(firebaseUser))}`
     );
   } catch (error) {
     next(error);
