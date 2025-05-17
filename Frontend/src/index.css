@@ -8,8 +8,6 @@
   font-weight: 400;
   font-style: normal;
 
-
-
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424;
@@ -71,9 +69,10 @@ li {
 }
 
 /* Hide scrollbar for IE, Edge and Firefox */
-html, body {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+html,
+body {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
 /* For any other elements that might have scrollbars */
@@ -105,6 +104,12 @@ button {
   cursor: pointer;
   transition: border-color 0.25s;
   /* background: transparent; */
+}
+
+.maxiPrueba {
+  border-radius: calc(infinity * 1px);
+  border: none;
+  padding: 0px;
 }
 
 #loginButton {

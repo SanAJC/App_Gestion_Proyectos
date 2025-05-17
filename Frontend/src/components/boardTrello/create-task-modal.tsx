@@ -123,7 +123,7 @@ export default function CreateTaskModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 text-left">
+    <div className="fixed inset-0 bg-[#0000009e] bg-opacity-30 flex items-center justify-center z-50 text-left">
       <div className="bg-white rounded-lg w-full max-w-md p-6 shadow-lg">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-[#1F2633]">
@@ -228,7 +228,7 @@ export default function CreateTaskModal({
               <button
                 type="button"
                 onClick={handleAddAssignee}
-                className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200"
+                className="flex items-center justify-center w-6 h-6 maxiPrueba rounded-full bg-gray-100 hover:bg-gray-200"
               >
                 <Plus size={14} />
               </button>

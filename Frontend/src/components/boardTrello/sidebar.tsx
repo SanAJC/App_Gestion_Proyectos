@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Avatar } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { logout } from "@/store/slices/authSlice";
@@ -22,14 +21,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
-import {
-  Search,
-  Bell,
-  Settings,
-  FileText,
-  Box,
-  ChevronLeft,
-} from "lucide-react";
+import { Search, Settings, FileText, Box, ChevronLeft } from "lucide-react";
 
 const Sidebar: React.FC = () => {
   const navigate = useNavigate();
@@ -40,6 +32,12 @@ const Sidebar: React.FC = () => {
     dispatch(logout());
     navigate("/login");
   };
+
+  // Leer avatar personalizado del localStorage por usuario
+  const userEmail = user?.email || "";
+  const savedAvatar = userEmail
+    ? localStorage.getItem(`userAvatar_${userEmail}`)
+    : null;
 
   return (
     <UISidebar
@@ -115,23 +113,30 @@ const Sidebar: React.FC = () => {
             </span>
           </SidebarMenuButton>
         </SidebarMenuItem>
+
         <Separator className="my-4 group-data-[collapsible=icon]:hidden" />
+
         <div className="flex items-center bg-[#4EADA1] rounded-lg p-3 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:bg-transparent">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <div className="flex items-center cursor-pointer">
                 <Avatar className="h-10 w-10 mr-3 group-data-[collapsible=icon]:mr-0">
                   <img
-                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user?.username || 'Juanes Coronell')}`}
+                    src={
+                      savedAvatar ||
+                      `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                        user?.username || user?.displayName || "Usuario"
+                      )}`
+                    }
                     alt="Avatar"
                   />
                 </Avatar>
                 <div className="flex-1 group-data-[collapsible=icon]:hidden">
                   <p className="font-medium text-white">
-                    {user?.username || "Juanes Coronell"}
+                    {user?.username || user?.displayName || "Usuario"}
                   </p>
                   <p className="text-xs text-white/70">
-                    {user?.email || "Juanes@gmail.com"}
+                    {user?.email || "correo@ejemplo.com"}
                   </p>
                 </div>
               </div>

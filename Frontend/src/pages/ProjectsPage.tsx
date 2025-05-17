@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Avatar } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { logout } from "@/store/slices/authSlice";
@@ -27,7 +26,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   Search,
-  Bell,
   Settings,
   FileText,
   Box,
@@ -152,14 +150,21 @@ const ProjectsPage: React.FC = () => {
   const handleSave = () => {
     if (!form.title.trim()) return;
     if (editingProject) {
-      setProjects(projects.map(p => p.id === editingProject.id ? { ...editingProject, ...form, members: form.members } : p));
+      setProjects(
+        projects.map((p) =>
+          p.id === editingProject.id
+            ? { ...editingProject, ...form, members: form.members }
+            : p
+        )
+      );
     } else {
       setProjects([
         ...projects,
         {
           id: Date.now().toString(),
           title: form.title,
-          image: form.image || "https://via.placeholder.com/300x120?text=Proyecto",
+          image:
+            form.image || "https://via.placeholder.com/300x120?text=Proyecto",
           type: "custom",
           repo: form.repo,
           members: form.members,
@@ -171,19 +176,26 @@ const ProjectsPage: React.FC = () => {
 
   // Eliminar proyecto
   const handleDelete = (id: string) => {
-    setProjects(projects.filter(p => p.id !== id));
+    setProjects(projects.filter((p) => p.id !== id));
   };
 
   // Añadir integrante
   const handleAddMember = () => {
-    if (form.memberInput.trim() && !form.members.includes(form.memberInput.trim())) {
-      setForm({ ...form, members: [...form.members, form.memberInput.trim()], memberInput: "" });
+    if (
+      form.memberInput.trim() &&
+      !form.members.includes(form.memberInput.trim())
+    ) {
+      setForm({
+        ...form,
+        members: [...form.members, form.memberInput.trim()],
+        memberInput: "",
+      });
     }
   };
 
   // Eliminar integrante
   const handleRemoveMember = (member: string) => {
-    setForm({ ...form, members: form.members.filter(m => m !== member) });
+    setForm({ ...form, members: form.members.filter((m) => m !== member) });
   };
 
   // Abrir modal de detalles
@@ -212,7 +224,7 @@ const ProjectsPage: React.FC = () => {
       navigate(`/project/${project.id}`);
     };
     return (
-      <div 
+      <div
         className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer relative group"
         onClick={handleCardClick}
         onMouseEnter={() => setHovered(true)}
@@ -225,18 +237,50 @@ const ProjectsPage: React.FC = () => {
             className="w-full h-32 object-cover"
           />
           {/* Botones de editar, eliminar y duplicar */}
-          <div className={`absolute top-2 right-2 flex gap-2 transition-opacity ${hovered ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100`} onClick={e => e.stopPropagation()}>
-            <button onClick={() => openEditModal(project)} className="bg-white rounded-full p-1 shadow hover:bg-gray-100"><Edit size={18} /></button>
-            <button onClick={() => handleDelete(project.id)} className="bg-white rounded-full p-1 shadow hover:bg-gray-100"><Trash2 size={18} /></button>
-            <button onClick={() => handleDuplicate(project)} className="bg-white rounded-full p-1 shadow hover:bg-gray-100"><Copy size={18} /></button>
+          <div
+            className={`absolute top-2 right-2 flex gap-2 transition-opacity ${
+              hovered ? "opacity-100" : "opacity-0"
+            } group-hover:opacity-100`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => openEditModal(project)}
+              className="bg-white rounded-full p-1 shadow hover:bg-gray-100"
+            >
+              <Edit size={18} />
+            </button>
+            <button
+              onClick={() => handleDelete(project.id)}
+              className="bg-white rounded-full p-1 shadow hover:bg-gray-100"
+            >
+              <Trash2 size={18} />
+            </button>
+            <button
+              onClick={() => handleDuplicate(project)}
+              className="bg-white rounded-full p-1 shadow hover:bg-gray-100"
+            >
+              <Copy size={18} />
+            </button>
           </div>
         </div>
         <div className="p-4">
-          <h3 className="text-lg font-medium text-gray-800 hover:underline cursor-pointer" onClick={e => { e.stopPropagation(); openDetailModal(project); }}>{project.title}</h3>
+          <h3
+            className="text-lg font-medium text-gray-800 hover:underline cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              openDetailModal(project);
+            }}
+          >
+            {project.title}
+          </h3>
         </div>
       </div>
     );
   };
+
+  // Leer avatar personalizado del localStorage por usuario
+  const userEmail = user?.email || "";
+  const savedAvatar = userEmail ? localStorage.getItem(`userAvatar_${userEmail}`) : null;
 
   return (
     <div className="bg-[#f2f2f2] h-screen flex flex-col">
@@ -316,23 +360,30 @@ const ProjectsPage: React.FC = () => {
                 </span>
               </SidebarMenuButton>
             </SidebarMenuItem>
+
             <Separator className="my-4 group-data-[collapsible=icon]:hidden" />
+
             <div className="flex items-center bg-[#4EADA1] rounded-lg p-3 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:bg-transparent">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <div className="flex items-center cursor-pointer">
                     <Avatar className="h-10 w-10 mr-3 group-data-[collapsible=icon]:mr-0">
                       <img
-                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user?.username || 'Juanes Coronell')}`}
+                        src={
+                          savedAvatar ||
+                          `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                            user?.username || user?.displayName || "Usuario"
+                          )}`
+                        }
                         alt="Avatar"
                       />
                     </Avatar>
                     <div className="flex-1 group-data-[collapsible=icon]:hidden">
                       <p className="font-medium text-white">
-                        {user?.username || "Juanes Coronell"}
+                        {user?.username || user?.displayName || "Usuario"}
                       </p>
                       <p className="text-xs text-white/70">
-                        {user?.email || "Juanes@gmail.com"}
+                        {user?.email || "correo@ejemplo.com"}
                       </p>
                     </div>
                   </div>
@@ -371,7 +422,9 @@ const ProjectsPage: React.FC = () => {
           <div className="flex items-center mb-6 justify-between">
             <div className="flex items-center">
               <Clock className="text-teal-600 mr-2" size={24} />
-              <h1 className="text-2xl font-semibold text-gray-800">Proyectos</h1>
+              <h1 className="text-2xl font-semibold text-gray-800">
+                Proyectos
+              </h1>
             </div>
             <button
               onClick={openCreateModal}
@@ -395,7 +448,9 @@ const ProjectsPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl w-full max-w-md p-8 shadow-xl relative">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-[#1F2633]">{editingProject ? 'Editar proyecto' : 'Crear nuevo proyecto'}</h2>
+              <h2 className="text-2xl font-bold text-[#1F2633]">
+                {editingProject ? "Editar proyecto" : "Crear nuevo proyecto"}
+              </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
@@ -405,42 +460,59 @@ const ProjectsPage: React.FC = () => {
             </div>
             <div className="flex flex-col gap-4">
               <div>
-                <label className="block text-sm font-medium text-[#1F2633] mb-1">Título del proyecto</label>
+                <label className="block text-sm font-medium text-[#1F2633] mb-1">
+                  Título del proyecto
+                </label>
                 <input
                   type="text"
                   value={form.title}
-                  onChange={e => setForm({ ...form, title: e.target.value })}
+                  onChange={(e) => setForm({ ...form, title: e.target.value })}
                   className="w-full px-3 py-2 border border-[#EBEEF2] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Nombre del proyecto"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#1F2633] mb-1">Imagen (URL)</label>
+                <label className="block text-sm font-medium text-[#1F2633] mb-1">
+                  Imagen (URL)
+                </label>
                 <input
                   type="text"
                   value={form.image}
-                  onChange={e => setForm({ ...form, image: e.target.value })}
+                  onChange={(e) => setForm({ ...form, image: e.target.value })}
                   className="w-full px-3 py-2 border border-[#EBEEF2] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="URL de la imagen"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#1F2633] mb-1">Repositorio de GitHub</label>
+                <label className="block text-sm font-medium text-[#1F2633] mb-1">
+                  Repositorio de GitHub
+                </label>
                 <input
                   type="text"
                   value={form.repo}
-                  onChange={e => setForm({ ...form, repo: e.target.value })}
+                  onChange={(e) => setForm({ ...form, repo: e.target.value })}
                   className="w-full px-3 py-2 border border-[#EBEEF2] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="https://github.com/usuario/repositorio"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#1F2633] mb-1">Integrantes</label>
+                <label className="block text-sm font-medium text-[#1F2633] mb-1">
+                  Integrantes
+                </label>
                 <div className="flex gap-2 mb-2 flex-wrap">
-                  {form.members.map(member => (
-                    <div key={member} className="flex items-center bg-gray-100 rounded-full px-2 py-1">
+                  {form.members.map((member) => (
+                    <div
+                      key={member}
+                      className="flex items-center bg-gray-100 rounded-full px-2 py-1"
+                    >
                       <span className="text-xs mr-1">{member}</span>
-                      <button type="button" onClick={() => handleRemoveMember(member)} className="text-gray-500 hover:text-gray-700 ml-1">×</button>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveMember(member)}
+                        className="text-gray-500 hover:text-gray-700 ml-1"
+                      >
+                        ×
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -448,7 +520,9 @@ const ProjectsPage: React.FC = () => {
                   <input
                     type="text"
                     value={form.memberInput}
-                    onChange={e => setForm({ ...form, memberInput: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, memberInput: e.target.value })
+                    }
                     className="flex-1 px-3 py-2 border border-[#EBEEF2] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Nombre o email del integrante"
                   />
@@ -474,7 +548,7 @@ const ProjectsPage: React.FC = () => {
                   onClick={handleSave}
                   className="px-4 py-2 bg-[#2C8780] text-white rounded-lg hover:bg-opacity-90"
                 >
-                  {editingProject ? 'Guardar cambios' : 'Crear proyecto'}
+                  {editingProject ? "Guardar cambios" : "Crear proyecto"}
                 </button>
               </div>
             </div>
@@ -487,7 +561,9 @@ const ProjectsPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl w-full max-w-md p-8 shadow-xl relative">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-[#1F2633]">Detalles del proyecto</h2>
+              <h2 className="text-2xl font-bold text-[#1F2633]">
+                Detalles del proyecto
+              </h2>
               <button
                 onClick={() => setIsDetailModalOpen(false)}
                 className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
@@ -497,23 +573,53 @@ const ProjectsPage: React.FC = () => {
             </div>
             <div className="flex flex-col gap-4">
               <div>
-                <label className="block text-sm font-medium text-[#1F2633] mb-1">Título</label>
-                <div className="px-3 py-2 border border-[#EBEEF2] rounded-lg bg-gray-50">{detailProject.title}</div>
+                <label className="block text-sm font-medium text-[#1F2633] mb-1">
+                  Título
+                </label>
+                <div className="px-3 py-2 border border-[#EBEEF2] rounded-lg bg-gray-50">
+                  {detailProject.title}
+                </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#1F2633] mb-1">Imagen</label>
-                <img src={detailProject.image} alt={detailProject.title} className="w-full h-32 object-cover rounded" />
+                <label className="block text-sm font-medium text-[#1F2633] mb-1">
+                  Imagen
+                </label>
+                <img
+                  src={detailProject.image}
+                  alt={detailProject.title}
+                  className="w-full h-32 object-cover rounded"
+                />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#1F2633] mb-1">Repositorio de GitHub</label>
-                <a href={detailProject.repo} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">{detailProject.repo}</a>
+                <label className="block text-sm font-medium text-[#1F2633] mb-1">
+                  Repositorio de GitHub
+                </label>
+                <a
+                  href={detailProject.repo}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 underline break-all"
+                >
+                  {detailProject.repo}
+                </a>
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#1F2633] mb-1">Integrantes</label>
+                <label className="block text-sm font-medium text-[#1F2633] mb-1">
+                  Integrantes
+                </label>
                 <div className="flex gap-2 flex-wrap">
-                  {detailProject.members.length === 0 ? <span className="text-gray-400">Sin integrantes</span> : detailProject.members.map(member => (
-                    <span key={member} className="bg-gray-100 rounded-full px-2 py-1 text-xs">{member}</span>
-                  ))}
+                  {detailProject.members.length === 0 ? (
+                    <span className="text-gray-400">Sin integrantes</span>
+                  ) : (
+                    detailProject.members.map((member) => (
+                      <span
+                        key={member}
+                        className="bg-gray-100 rounded-full px-2 py-1 text-xs"
+                      >
+                        {member}
+                      </span>
+                    ))
+                  )}
                 </div>
               </div>
             </div>

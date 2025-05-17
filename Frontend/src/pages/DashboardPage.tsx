@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Avatar } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { logout } from "@/store/slices/authSlice";
@@ -27,7 +26,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   Search,
-  Bell,
   Settings,
   FileText,
   Box,
@@ -50,6 +48,12 @@ const DashboardPage: React.FC = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const { user } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
+
+  // Leer avatar personalizado del localStorage por usuario
+  const userEmail = user?.email || "";
+  const savedAvatar = userEmail
+    ? localStorage.getItem(`userAvatar_${userEmail}`)
+    : null;
 
   // Estado para el modal de tarea
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -191,16 +195,21 @@ const DashboardPage: React.FC = () => {
                   <div className="flex items-center cursor-pointer">
                     <Avatar className="h-10 w-10 mr-3 group-data-[collapsible=icon]:mr-0">
                       <img
-                        src="https://ui-avatars.com/api/?name=Juanes+Coronell"
+                        src={
+                          savedAvatar ||
+                          `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                            user?.username || user?.displayName || "Usuario"
+                          )}`
+                        }
                         alt="Avatar"
                       />
                     </Avatar>
                     <div className="flex-1 group-data-[collapsible=icon]:hidden">
                       <p className="font-medium text-white">
-                        {user?.username || "Juanes Coronell"}
+                        {user?.username || user?.displayName || "Usuario"}
                       </p>
                       <p className="text-xs text-white/70">
-                        {user?.email || "Juanes@gmail.com"}
+                        {user?.email || "correo@ejemplo.com"}
                       </p>
                     </div>
                   </div>
@@ -250,9 +259,15 @@ const DashboardPage: React.FC = () => {
                   >
                     <h1
                       className="text-3xl font-bol text-[#0C0B0B] font-poppins text-left"
-                      style={{ width: "210.88px", height: "54.72px" }}
+                      style={{ width: "auto", height: "54.72px" }}
                     >
-                      Hola {user?.username?.split(" ")[0] || "Juanes"} !
+                      Hola{" "}
+                      {
+                        (user?.username || user?.displayName || "Juanes").split(
+                          " "
+                        )[0]
+                      }{" "}
+                      !
                     </h1>
                     <p
                       className="line-clamp-3 md:line-clamp-4 text-[#5A5A5A] font-poppins font-normal leading-6 text-left"
@@ -298,9 +313,7 @@ const DashboardPage: React.FC = () => {
             <div className="lg:col-span-4 space-y-1">
               {/* Create Task Card */}
               <div>
-                <CreateTaskCard
-                  onClick={() => setIsTaskModalOpen(true)}
-                />
+                <CreateTaskCard onClick={() => setIsTaskModalOpen(true)} />
               </div>
 
               {/* Calendar Card */}

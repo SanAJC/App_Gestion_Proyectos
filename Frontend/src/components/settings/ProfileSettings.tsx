@@ -1,6 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -26,7 +32,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   Search,
-  Bell,
   Settings,
   FileText,
   Box,
@@ -38,32 +43,55 @@ import {
   User,
   AlertCircle,
 } from "lucide-react";
-import { useAppSelector } from '@/hooks/useAppSelector';
-import { useAppDispatch } from '@/hooks/useAppDispatch';
-import { logout } from '@/store/slices/authSlice';
+import { useAppSelector } from "@/hooks/useAppSelector";
+import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { logout } from "@/store/slices/authSlice";
 
 const ProfileSettings = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
+
+  // Cargar la imagen del localStorage si existe, usando el email como clave única
+  const userEmail = user?.email || "";
+
   const [formData, setFormData] = useState({
-    username: user?.username || '',
-    email: user?.email || '',
-    currentPassword: '',
-    newPassword: '',
+    username: user?.username || "",
+    email: user?.email || "",
+    currentPassword: "",
+    newPassword: "",
+    avatar: userEmail ? localStorage.getItem(`userAvatar_${userEmail}`) || "" : "", // Usamos la imagen guardada o vacío
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setFormData((prev) => ({
+          ...prev,
+          avatar: result,
+        }));
+        if (userEmail) {
+          localStorage.setItem(`userAvatar_${userEmail}`, result); // Guardamos en localStorage por usuario
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Datos actualizados:', formData);
+    console.log("Datos actualizados:", formData);
   };
 
   const handleLogout = () => {
@@ -99,7 +127,6 @@ const ProfileSettings = () => {
               </span>
             </div>
           </SidebarHeader>
-
           <SidebarContent className="px-4 mt-4 group-data-[collapsible=icon]:px-2 flex-grow">
             <div className="relative mb-6 group-data-[collapsible=icon]:hidden">
               <Search
@@ -111,7 +138,6 @@ const ProfileSettings = () => {
                 className="pl-10 bg-[#2C8780] border-none text-white placeholder-white focus:ring-0 focus:outline-none"
               />
             </div>
-
             <SidebarMenuItem className="mb-2 group-data-[collapsible=icon]:mb-4">
               <SidebarMenuButton
                 tooltip="Dashboard"
@@ -124,7 +150,6 @@ const ProfileSettings = () => {
                 </span>
               </SidebarMenuButton>
             </SidebarMenuItem>
-
             <SidebarMenuItem className="mb-2 group-data-[collapsible=icon]:mb-4">
               <SidebarMenuButton
                 tooltip="Proyectos"
@@ -138,7 +163,6 @@ const ProfileSettings = () => {
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarContent>
-
           <SidebarFooter className="mt-auto p-4 group-data-[collapsible=icon]:p-2">
             <SidebarMenuItem>
               <SidebarMenuButton
@@ -152,25 +176,28 @@ const ProfileSettings = () => {
                 </span>
               </SidebarMenuButton>
             </SidebarMenuItem>
-
             <Separator className="my-4 group-data-[collapsible=icon]:hidden" />
-
             <div className="flex items-center bg-[#4EADA1] rounded-lg p-3 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:bg-transparent">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <div className="flex items-center cursor-pointer">
                     <Avatar className="h-10 w-10 mr-3 group-data-[collapsible=icon]:mr-0">
                       <img
-                        src="https://ui-avatars.com/api/?name=Juanes+Coronell"
+                        src={
+                          formData.avatar ||
+                          `https://ui-avatars.com/api/?name= ${encodeURIComponent(
+                            user?.username || user?.displayName || "Usuario"
+                          )}`
+                        }
                         alt="Avatar"
                       />
                     </Avatar>
                     <div className="flex-1 group-data-[collapsible=icon]:hidden">
                       <p className="font-medium text-white">
-                        {user?.username || "Juanes Coronell"}
+                        {user?.username || user?.displayName || "Usuario"}
                       </p>
                       <p className="text-xs text-white/70">
-                        {user?.email || "Juanes@gmail.com"}
+                        {user?.email || "correo@ejemplo.com"}
                       </p>
                     </div>
                   </div>
@@ -197,17 +224,16 @@ const ProfileSettings = () => {
             </div>
           </SidebarFooter>
         </Sidebar>
-
         <header className="p-4 md:hidden">
           <SidebarTrigger />
         </header>
-
         <MainContent>
           <div className="flex items-center mb-6">
             <UserCircle2 className="text-teal-600 mr-2" size={24} />
-            <h1 className="text-2xl font-semibold text-gray-800">Configuración de Perfil</h1>
+            <h1 className="text-2xl font-semibold text-gray-800">
+              Configuración de Perfil
+            </h1>
           </div>
-
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-[1200px] mx-auto">
             <div className="lg:col-span-8 space-y-6">
               <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
@@ -226,23 +252,30 @@ const ProfileSettings = () => {
                       <div className="relative group">
                         <Avatar className="h-32 w-32 ring-4 ring-white shadow-lg">
                           <img
-                            src="https://ui-avatars.com/api/?name=Juanes+Coronell&size=128"
+                            src={
+                              formData.avatar ||
+                              `https://ui-avatars.com/api/?name= ${encodeURIComponent(
+                                user?.username || user?.displayName || "Usuario"
+                              )}&size=128`
+                            }
                             alt="Avatar"
                             className="h-32 w-32 object-cover"
                           />
                         </Avatar>
-                        <button
-                          type="button"
-                          className="absolute bottom-0 right-0 p-2 bg-teal-600 rounded-full text-white shadow-lg hover:bg-teal-700 transition-colors group-hover:scale-110 duration-200"
-                        >
+                        <label className="absolute bottom-0 right-0 p-2 bg-teal-600 rounded-full text-white shadow-lg hover:bg-teal-700 cursor-pointer group-hover:scale-110 duration-200">
                           <Camera className="h-5 w-5" />
-                        </button>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            className="hidden"
+                          />
+                        </label>
                       </div>
                       <p className="text-sm text-gray-500">
                         Click en el ícono de cámara para cambiar tu foto
                       </p>
                     </div>
-
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
@@ -251,13 +284,17 @@ const ProfileSettings = () => {
                         </label>
                         <Input
                           name="username"
-                          value={formData.username}
+                          value={
+                            formData.username ||
+                            user?.username ||
+                            user?.displayName ||
+                            ""
+                          }
                           onChange={handleChange}
                           className="bg-[#F8F9FA] border-gray-200 focus:border-teal-500 focus:ring-teal-500"
                           placeholder="Tu nombre"
                         />
                       </div>
-
                       <div className="space-y-2">
                         <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
                           <Mail className="h-4 w-4 text-teal-600" />
@@ -266,7 +303,7 @@ const ProfileSettings = () => {
                         <Input
                           name="email"
                           type="email"
-                          value={formData.email}
+                          value={formData.email || user?.email || ""}
                           onChange={handleChange}
                           className="bg-[#F8F9FA] border-gray-200 focus:border-teal-500 focus:ring-teal-500"
                           placeholder="tu@email.com"
@@ -276,7 +313,6 @@ const ProfileSettings = () => {
                   </form>
                 </CardContent>
               </Card>
-
               <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
                 <CardHeader className="space-y-1">
                   <div className="flex items-center space-x-2">
@@ -304,7 +340,6 @@ const ProfileSettings = () => {
                           placeholder="••••••••"
                         />
                       </div>
-
                       <div className="space-y-2">
                         <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
                           <Lock className="h-4 w-4 text-teal-600" />
@@ -324,35 +359,35 @@ const ProfileSettings = () => {
                 </CardContent>
               </Card>
             </div>
-
             <div className="lg:col-span-4 space-y-6">
               <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
                 <CardHeader>
                   <CardTitle className="text-lg">Acciones</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <Button 
+                  <Button
                     type="submit"
                     className="w-full bg-teal-600 hover:bg-teal-700 text-white transition-colors duration-200"
                     onClick={handleSubmit}
                   >
                     Guardar cambios
                   </Button>
-
                   <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
                     <div className="flex items-start space-x-3">
                       <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
                       <div>
-                        <h4 className="text-sm font-medium text-yellow-800">Importante</h4>
+                        <h4 className="text-sm font-medium text-yellow-800">
+                          Importante
+                        </h4>
                         <p className="text-sm text-yellow-700 mt-1">
-                          Al cambiar tu correo electrónico, necesitarás verificar tu nueva dirección.
+                          Al cambiar tu correo electrónico, necesitarás
+                          verificar tu nueva dirección.
                         </p>
                       </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-
               <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
                 <CardHeader>
                   <CardTitle className="text-lg">Sesiones activas</CardTitle>
@@ -362,13 +397,18 @@ const ProfileSettings = () => {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
                         <div className="h-2 w-2 rounded-full bg-green-500" />
-                        <span className="text-sm text-gray-600">Sesión actual</span>
+                        <span className="text-sm text-gray-600">
+                          Sesión actual
+                        </span>
                       </div>
-                      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                      <Badge
+                        variant="outline"
+                        className="bg-green-50 text-green-700 border-green-200"
+                      >
                         Activa
                       </Badge>
                     </div>
-                    <Button 
+                    <Button
                       variant="outline"
                       className="w-full text-red-600 border-red-200 hover:bg-red-50"
                       onClick={handleLogout}
