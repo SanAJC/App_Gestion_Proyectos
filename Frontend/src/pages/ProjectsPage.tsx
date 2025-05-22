@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+// Frontend/src/pages/ProjectsPage.tsx
+import React, { useState, useEffect } from "react"; 
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Avatar } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { logout } from "@/store/slices/authSlice";
@@ -36,15 +38,24 @@ import {
   Trash2,
   Copy,
 } from "lucide-react";
+import api from "@/services/api"; 
+import { toast } from "react-toastify"; 
 
-// Definimos el tipo de proyecto
+// Definimos el tipo de proyecto (ajustado para coincidir con el backend si es necesario)
 interface Project {
   id: string;
   title: string;
-  image: string;
-  type: string;
-  repo: string;
-  members: string[];
+  description?: string; 
+  ownerId: string; 
+  miembros: string[]; 
+  githubRepo?: {
+    
+    name: string;
+    url: string;
+  };
+  status?: string; 
+  image?: string; 
+  type?: string; 
 }
 
 const ProjectsPage: React.FC = () => {
@@ -52,67 +63,53 @@ const ProjectsPage: React.FC = () => {
   const { user } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
 
-  // Estado para los proyectos (ahora editable)
-  const [projects, setProjects] = useState<Project[]>([
-    {
-      id: "1",
-      title: "Desarrollo APP mobil",
-      image:
-        "https://www.visual-planning.com/es/wp-content/uploads/2020/11/Cuales-son-las-caracteristicas-imprescindibles-de-un-software-de-gestion-de-proyectos-Visual-Planning.jpg",
-      type: "mobile",
-      repo: "",
-      members: [],
-    },
-    {
-      id: "2",
-      title: "Diseño UI",
-      image:
-        "https://3530961.fs1.hubspotusercontent-na1.net/hub/3530961/hubfs/Blog_Pensemos_707x282px_8.jpg?width=800&height=346&name=Blog_Pensemos_707x282px_8.jpg",
-      type: "design",
-      repo: "",
-      members: [],
-    },
-    {
-      id: "3",
-      title: "Desarrollo web",
-      image:
-        "https://gestiondeproyectos340245913.wordpress.com/wp-content/uploads/2021/05/promo-image.1547668953.png?w=750",
-      type: "web",
-      repo: "",
-      members: [],
-    },
-    {
-      id: "4",
-      title: "Sistema de diseño",
-      image:
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSub_8WUp5xKfX9h8fwCUcQvp1GOXCoUyA0XnESEUu0sf-0a4kOvMm1lVZwGs8pM23Jd_g&usqp=CAU",
-      type: "system",
-      repo: "",
-      members: [],
-    },
-  ]);
+  const [projects, setProjects] = useState<Project[]>([]); 
+  const [loading, setLoading] = useState(true); 
+  const [error, setError] = useState<string | null>(null); 
 
   // Estado para modal CRUD
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [form, setForm] = useState({
     title: "",
+    description: "", 
     image: "",
     repo: "",
     members: [] as string[],
     memberInput: "",
   });
-
-  // Estado para modal de detalles
+  
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [detailProject, setDetailProject] = useState<Project | null>(null);
+
+  
+  const fetchProjects = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get(`/projects/user/${user?.uid}`);
+      setProjects(response.data.projects); 
+    } catch (err: any) {
+      console.error("Error al cargar proyectos:", err);
+      setError("Error al cargar proyectos.");
+      toast.error("Error al cargar proyectos."); 
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  
+  useEffect(() => {
+    if (user?.uid) {
+      fetchProjects();
+    }
+  }, [user?.uid]); 
 
   const handleLogout = () => {
     dispatch(logout());
     navigate("/login");
   };
 
-  // Componente para el contenido principal que se ajusta al estado del sidebar
+  
   const MainContent = ({ children }: { children: React.ReactNode }) => {
     const { state } = useSidebar();
     return (
@@ -126,57 +123,95 @@ const ProjectsPage: React.FC = () => {
     );
   };
 
-  // Abrir modal para crear
+  
   const openCreateModal = () => {
     setEditingProject(null);
-    setForm({ title: "", image: "", repo: "", members: [], memberInput: "" });
+    setForm({
+      title: "",
+      description: "",
+      image: "",
+      repo: "",
+      members: [],
+      memberInput: "",
+    }); 
     setIsModalOpen(true);
   };
 
-  // Abrir modal para editar
+  
   const openEditModal = (project: Project) => {
     setEditingProject(project);
     setForm({
       title: project.title,
-      image: project.image,
-      repo: project.repo || "",
-      members: project.members || [],
+      description: project.description || "", 
+      image: project.image || "",
+      repo: project.githubRepo?.url || "", 
+      members: project.miembros || [], 
       memberInput: "",
     });
     setIsModalOpen(true);
   };
 
-  // Guardar proyecto (crear o editar)
-  const handleSave = () => {
-    if (!form.title.trim()) return;
-    if (editingProject) {
-      setProjects(
-        projects.map((p) =>
-          p.id === editingProject.id
-            ? { ...editingProject, ...form, members: form.members }
-            : p
-        )
-      );
-    } else {
-      setProjects([
-        ...projects,
-        {
-          id: Date.now().toString(),
-          title: form.title,
-          image:
-            form.image || "https://via.placeholder.com/300x120?text=Proyecto",
-          type: "custom",
-          repo: form.repo,
-          members: form.members,
-        },
-      ]);
+  
+  const handleSave = async () => {
+    
+    if (!form.title.trim() || !user?.uid) return;
+
+    const projectData = {
+      title: form.title,
+      description: form.description,
+      ownerId: user.uid, 
+      miembros: form.members,
+      githubRepo: form.repo
+        ? { name: form.repo.split("/").pop() || "", url: form.repo }
+        : undefined, 
+      status: "activo", 
+      image: form.image || "https://via.placeholder.com/300x120?text=Proyecto", 
+    };
+
+    setLoading(true); 
+
+    try {
+      if (editingProject) {
+        // Lógica para actualizar proyecto (si implementas esta funcionalidad)
+        // await api.put(`/projects/${editingProject.id}`, projectData);
+        // toast.success("Proyecto actualizado correctamente.");
+        // fetchProjects(); // Volver a cargar proyectos después de actualizar
+      } else {
+        await api.post("/projects", projectData);
+        toast.success("Proyecto creado correctamente.");
+        fetchProjects(); 
+      }
+      setIsModalOpen(false);
+    } catch (err: any) {
+      console.error("Error al guardar proyecto:", err);
+      toast.error(
+        `Error al guardar proyecto: ${
+          err.response?.data?.message || err.message
+        }`
+      ); 
+    } finally {
+      setLoading(false); 
     }
-    setIsModalOpen(false);
   };
 
-  // Eliminar proyecto
-  const handleDelete = (id: string) => {
-    setProjects(projects.filter((p) => p.id !== id));
+  
+  const handleDelete = async (id: string) => {
+    
+    setLoading(true); 
+    try {
+      await api.delete(`/projects/${id}`);
+      toast.success("Proyecto eliminado correctamente.");
+      fetchProjects(); 
+    } catch (err: any) {
+      console.error("Error al eliminar proyecto:", err);
+      toast.error(
+        `Error al eliminar proyecto: ${
+          err.response?.data?.message || err.message
+        }`
+      ); // Notificación de error más detallada
+    } finally {
+      setLoading(false); // Ocultar spinner de carga
+    }
   };
 
   // Añadir integrante
@@ -203,17 +238,19 @@ const ProjectsPage: React.FC = () => {
     setDetailProject(project);
     setIsDetailModalOpen(true);
   };
-
-  // Duplicar proyecto
-  const handleDuplicate = (project: Project) => {
-    setProjects([
-      ...projects,
-      {
-        ...project,
-        id: Date.now().toString(),
-        title: project.title + " (Copia)",
-      },
-    ]);
+  // Duplicar proyecto (funcionalidad a implementar en backend si es necesario)
+  const handleDuplicate = () => {
+    // setProjects([
+    //   ...projects,
+    //   {
+    //     ...project,
+    //     id: Date.now().toString(),
+    //     title: project.title + " (Copia)",
+    //   },
+    // ]);
+    toast.info(
+      "La función duplicar proyecto aún no está implementada en el backend."
+    );
   };
 
   // Componente para la tarjeta de proyecto
@@ -232,7 +269,10 @@ const ProjectsPage: React.FC = () => {
       >
         <div className="relative">
           <img
-            src={project.image}
+            src={
+              project.image ||
+              "https://via.placeholder.com/300x120?text=Proyecto"
+            } // Imagen por defecto
             alt={project.title}
             className="w-full h-32 object-cover"
           />
@@ -254,9 +294,9 @@ const ProjectsPage: React.FC = () => {
               className="bg-white rounded-full p-1 shadow hover:bg-gray-100"
             >
               <Trash2 size={18} />
-            </button>
+            </button>{" "}
             <button
-              onClick={() => handleDuplicate(project)}
+              onClick={() => handleDuplicate()}
               className="bg-white rounded-full p-1 shadow hover:bg-gray-100"
             >
               <Copy size={18} />
@@ -273,14 +313,24 @@ const ProjectsPage: React.FC = () => {
           >
             {project.title}
           </h3>
+          {/* Mostrar descripción si existe */}
+          {project.description && (
+            <p className="text-sm text-gray-600 mt-1">{project.description}</p>
+          )}
+          {/* Mostrar miembros si existen */}
+          {project.miembros && project.miembros.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {project.miembros.map((member, index) => (
+                <Badge key={index} variant="secondary">
+                  {member}
+                </Badge>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     );
   };
-
-  // Leer avatar personalizado del localStorage por usuario
-  const userEmail = user?.email || "";
-  const savedAvatar = userEmail ? localStorage.getItem(`userAvatar_${userEmail}`) : null;
 
   return (
     <div className="bg-[#f2f2f2] h-screen flex flex-col">
@@ -293,7 +343,8 @@ const ProjectsPage: React.FC = () => {
         >
           <SidebarHeader className="p-4 flex justify-between group-data-[collapsible=icon]:p-2">
             <div className="text-teal-600 font-bold text-2xl flex items-center">
-              <img src="../public/assets/img/Logo.svg" alt="" />
+              {" "}
+              <img src="/assets/img/Logo.svg" alt="Logo CoAAP" />
               <span className="md:hidden lg:inline transition-opacity duration-200 ease-linear group-data-[collapsible=icon]:opacity-0">
                 CoAAP
               </span>
@@ -360,30 +411,25 @@ const ProjectsPage: React.FC = () => {
                 </span>
               </SidebarMenuButton>
             </SidebarMenuItem>
-
             <Separator className="my-4 group-data-[collapsible=icon]:hidden" />
-
             <div className="flex items-center bg-[#4EADA1] rounded-lg p-3 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:bg-transparent">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <div className="flex items-center cursor-pointer">
                     <Avatar className="h-10 w-10 mr-3 group-data-[collapsible=icon]:mr-0">
                       <img
-                        src={
-                          savedAvatar ||
-                          `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                            user?.username || user?.displayName || "Usuario"
-                          )}`
-                        }
+                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
+                          user?.username || "Juanes Coronell"
+                        )}`}
                         alt="Avatar"
                       />
                     </Avatar>
                     <div className="flex-1 group-data-[collapsible=icon]:hidden">
                       <p className="font-medium text-white">
-                        {user?.username || user?.displayName || "Usuario"}
+                        {user?.username || "Juanes Coronell"}
                       </p>
                       <p className="text-xs text-white/70">
-                        {user?.email || "correo@ejemplo.com"}
+                        {user?.email || "Juanes@gmail.com"}
                       </p>
                     </div>
                   </div>
@@ -429,10 +475,24 @@ const ProjectsPage: React.FC = () => {
             <button
               onClick={openCreateModal}
               className="flex items-center gap-2 bg-[#2C8780] text-white px-4 py-2 rounded-lg shadow hover:bg-[#256c63] transition-colors"
+              disabled={loading} // Deshabilitar botón mientras carga
             >
-              <Plus size={18} /> Crear proyecto
+              {loading ? (
+                "Cargando..."
+              ) : (
+                <>
+                  <Plus size={18} /> Crear proyecto
+                </>
+              )}
             </button>
           </div>
+
+          {/* Loading/Error State */}
+          {loading && <p>Cargando proyectos...</p>}
+          {error && <p className="text-red-500">{error}</p>}
+          {!loading && !error && projects.length === 0 && (
+            <p>No hay proyectos disponibles.</p>
+          )}
 
           {/* Projects Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -454,6 +514,7 @@ const ProjectsPage: React.FC = () => {
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+                disabled={loading}
               >
                 ×
               </button>
@@ -469,7 +530,25 @@ const ProjectsPage: React.FC = () => {
                   onChange={(e) => setForm({ ...form, title: e.target.value })}
                   className="w-full px-3 py-2 border border-[#EBEEF2] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Nombre del proyecto"
+                  disabled={loading}
                 />
+              </div>
+              <div>
+                {" "}
+                {/* Nuevo campo para la descripción */}
+                <label className="block text-sm font-medium text-[#1F2633] mb-1">
+                  Descripción
+                </label>
+                <textarea
+                  value={form.description}
+                  onChange={(e) =>
+                    setForm({ ...form, description: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-[#EBEEF2] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Descripción del proyecto"
+                  rows={3}
+                  disabled={loading}
+                ></textarea>
               </div>
               <div>
                 <label className="block text-sm font-medium text-[#1F2633] mb-1">
@@ -481,6 +560,7 @@ const ProjectsPage: React.FC = () => {
                   onChange={(e) => setForm({ ...form, image: e.target.value })}
                   className="w-full px-3 py-2 border border-[#EBEEF2] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="URL de la imagen"
+                  disabled={loading}
                 />
               </div>
               <div>
@@ -493,6 +573,7 @@ const ProjectsPage: React.FC = () => {
                   onChange={(e) => setForm({ ...form, repo: e.target.value })}
                   className="w-full px-3 py-2 border border-[#EBEEF2] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="https://github.com/usuario/repositorio"
+                  disabled={loading}
                 />
               </div>
               <div>
@@ -510,6 +591,7 @@ const ProjectsPage: React.FC = () => {
                         type="button"
                         onClick={() => handleRemoveMember(member)}
                         className="text-gray-500 hover:text-gray-700 ml-1"
+                        disabled={loading}
                       >
                         ×
                       </button>
@@ -525,11 +607,13 @@ const ProjectsPage: React.FC = () => {
                     }
                     className="flex-1 px-3 py-2 border border-[#EBEEF2] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Nombre o email del integrante"
+                    disabled={loading}
                   />
                   <button
                     type="button"
                     onClick={handleAddMember}
                     className="px-3 py-2 bg-gray-100 rounded-lg hover:bg-gray-200"
+                    disabled={loading}
                   >
                     Añadir
                   </button>
@@ -540,6 +624,7 @@ const ProjectsPage: React.FC = () => {
                   type="button"
                   onClick={() => setIsModalOpen(false)}
                   className="px-4 py-2 border border-[#EBEEF2] rounded-lg hover:bg-gray-50"
+                  disabled={loading}
                 >
                   Cancelar
                 </button>
@@ -547,8 +632,13 @@ const ProjectsPage: React.FC = () => {
                   type="button"
                   onClick={handleSave}
                   className="px-4 py-2 bg-[#2C8780] text-white rounded-lg hover:bg-opacity-90"
+                  disabled={loading} // Deshabilitar botón mientras guarda
                 >
-                  {editingProject ? "Guardar cambios" : "Crear proyecto"}
+                  {loading
+                    ? "Guardando..."
+                    : editingProject
+                    ? "Guardar cambios"
+                    : "Crear proyecto"}
                 </button>
               </div>
             </div>
@@ -580,38 +670,53 @@ const ProjectsPage: React.FC = () => {
                   {detailProject.title}
                 </div>
               </div>
+              {/* Mostrar descripción en detalles si existe */}
+              {detailProject.description && (
+                <div>
+                  <label className="block text-sm font-medium text-[#1F2633] mb-1">
+                    Descripción
+                  </label>
+                  <div className="px-3 py-2 border border-[#EBEEF2] rounded-lg bg-gray-50">
+                    {detailProject.description}
+                  </div>
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-[#1F2633] mb-1">
                   Imagen
                 </label>
                 <img
-                  src={detailProject.image}
+                  src={
+                    detailProject.image ||
+                    "https://via.placeholder.com/300x120?text=Proyecto"
+                  }
                   alt={detailProject.title}
                   className="w-full h-32 object-cover rounded"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-[#1F2633] mb-1">
-                  Repositorio de GitHub
-                </label>
-                <a
-                  href={detailProject.repo}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 underline break-all"
-                >
-                  {detailProject.repo}
-                </a>
-              </div>
+              {detailProject.githubRepo?.url && ( // Mostrar repositorio si existe
+                <div>
+                  <label className="block text-sm font-medium text-[#1F2633] mb-1">
+                    Repositorio de GitHub
+                  </label>
+                  <a
+                    href={detailProject.githubRepo.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 underline break-all"
+                  >
+                    {detailProject.githubRepo.url}
+                  </a>
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-[#1F2633] mb-1">
                   Integrantes
                 </label>
                 <div className="flex gap-2 flex-wrap">
-                  {detailProject.members.length === 0 ? (
-                    <span className="text-gray-400">Sin integrantes</span>
-                  ) : (
-                    detailProject.members.map((member) => (
+                  {detailProject.miembros &&
+                  detailProject.miembros.length > 0 ? (
+                    detailProject.miembros.map((member) => (
                       <span
                         key={member}
                         className="bg-gray-100 rounded-full px-2 py-1 text-xs"
@@ -619,6 +724,8 @@ const ProjectsPage: React.FC = () => {
                         {member}
                       </span>
                     ))
+                  ) : (
+                    <span className="text-gray-400">Sin integrantes</span>
                   )}
                 </div>
               </div>
