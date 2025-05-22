@@ -15,8 +15,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import api from "@/services/api"; 
-import { Task } from "@/types/task"; 
+import api from "@/services/api";
+import { Task } from "@/types/task";
 
 export default function ProjectBoardPage() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -28,6 +28,7 @@ export default function ProjectBoardPage() {
   >("por-hacer");
   const [isGithubSheetOpen, setIsGithubSheetOpen] = useState(false);
   const [githubBranches, setGithubBranches] = useState<string[]>([]);
+  const [githubRepoInfo, setGithubRepoInfo] = useState<any>(null);
   const [githubLoading, setGithubLoading] = useState(false);
   const [githubError, setGithubError] = useState<string | null>(null);
   const [loadingTasks, setLoadingTasks] = useState(true);
@@ -35,8 +36,18 @@ export default function ProjectBoardPage() {
   const [savingTask, setSavingTask] = useState(false);
   const [updatingTaskStatus, setUpdatingTaskStatus] = useState<string | null>(
     null
-  ); 
-  const [editingTask, setEditingTask] = useState<Task | null>(null); 
+  );
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [projectMembers, setProjectMembers] = useState<
+    { id: string; email: string; username: string; image: string }[]
+  >([]);
+  const [projectDetails, setProjectDetails] = useState<any>(null);
+
+  // Cargar tareas y detalles del proyecto al montar el componente
+  useEffect(() => {
+    fetchTasks();
+    fetchProjectDetails();
+  }, [projectId]);
 
   // Función para obtener las tareas del backend
   const fetchTasks = () => {
@@ -46,7 +57,6 @@ export default function ProjectBoardPage() {
       api
         .get(`/tasks/${projectId}`)
         .then((response) => {
-          
           const tasksData = response.data.tasks || response.data;
 
           if (Array.isArray(tasksData)) {
@@ -69,17 +79,79 @@ export default function ProjectBoardPage() {
     }
   };
 
-  
-  useEffect(() => {
-    fetchTasks();
-  }, [projectId]);
+  // Función para obtener los detalles del proyecto
+  const fetchProjectDetails = async () => {
+    if (!projectId) return;
 
-  
+    try {
+      const response = await api.get(`/projects/${projectId}`);
+      const projectData = response.data.project || response.data;
+
+      setProjectDetails(projectData);
+
+      // Procesar los miembros del proyecto
+      if (
+        projectData &&
+        projectData.miembros &&
+        Array.isArray(projectData.miembros)
+      ) {
+        const membersPromises = projectData.miembros.map(
+          async (email: string) => {
+            try {
+              // Obtener información detallada del usuario
+              const userResponse = await api.get(
+                `/auth/check-user?email=${encodeURIComponent(email)}`
+              );
+              const userData = userResponse.data;
+
+              return {
+                id:
+                  userData.userId ||
+                  `user-${Math.random().toString(36).substring(2, 9)}`,
+                email: email,
+                username: userData.exists ? userData.username : email,
+                image: `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                  userData.username || email
+                )}&background=random`,
+              };
+            } catch (error) {
+              console.error(
+                `Error al obtener datos del usuario ${email}:`,
+                error
+              );
+              return {
+                id: `user-${Math.random().toString(36).substring(2, 9)}`,
+                email: email,
+                username: email,
+                image: `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                  email
+                )}&background=random`,
+              };
+            }
+          }
+        );
+
+        const membersData = await Promise.all(membersPromises);
+        setProjectMembers(membersData);
+      }
+    } catch (error) {
+      console.error("Error al obtener detalles del proyecto:", error);
+    }
+  };
   useEffect(() => {
-    if (isGithubSheetOpen) {
+    if (isGithubSheetOpen && projectDetails?.githubRepo?.url) {
       setGithubLoading(true);
       setGithubError(null);
-      fetch(`https://api.github.com/repos/empresa/${projectId}/branches`)
+
+      // Extraer usuario y nombre del repositorio de la URL
+      const githubUrlParts = projectDetails.githubRepo.url.match(
+        /github\.com\/([^\/]+)\/([^\/]+)/
+      );
+      const repoOwner = githubUrlParts ? githubUrlParts[1] : "empresa";
+      const repoName = githubUrlParts ? githubUrlParts[2] : projectId;
+
+      // Obtener ramas
+      fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/branches`)
         .then((res) => res.json())
         .then((data) => {
           if (Array.isArray(data)) {
@@ -89,21 +161,34 @@ export default function ProjectBoardPage() {
             setGithubBranches([]);
             setGithubError("Invalid data format from GitHub API.");
           }
-          setGithubLoading(false);
         })
         .catch((err) => {
           console.error("Error al cargar ramas de GitHub:", err);
           setGithubError("Error al cargar ramas de GitHub");
+        })
+        .finally(() => {
           setGithubLoading(false);
         });
-    }
-  }, [isGithubSheetOpen, projectId]);
 
-  
+      // Obtener información del repositorio
+      fetch(`https://api.github.com/repos/${repoOwner}/${repoName}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.id) {
+            setGithubRepoInfo(data);
+          } else {
+            console.error("GitHub API did not return repo data:", data);
+          }
+        })
+        .catch((err) => {
+          console.error("Error al cargar información del repositorio:", err);
+        });
+    }
+  }, [isGithubSheetOpen, projectId, projectDetails]);
+
   const onDragEnd = (result: any) => {
     const { destination, source, draggableId } = result;
 
-    
     if (
       !destination ||
       (destination.droppableId === source.droppableId &&
@@ -112,18 +197,15 @@ export default function ProjectBoardPage() {
       return;
     }
 
-    
     const task = tasks.find((t) => t.id === draggableId);
-    if (!task) return; 
+    if (!task) return;
 
-    
     const originalTasks = [...tasks];
 
-    
     const newTasks = [...tasks];
     const taskIndex = newTasks.findIndex((t) => t.id === draggableId);
     let newStatus: "por-hacer" | "en-proceso" | "hecho" | "por-verificar";
-    let newTags: string[] = []; 
+    let newTags: string[] = [];
     switch (destination.droppableId) {
       case "por-hacer":
         newStatus = "por-hacer";
@@ -142,7 +224,7 @@ export default function ProjectBoardPage() {
         newTags = ["Por verificar"];
         break;
       default:
-        newStatus = "por-hacer"; 
+        newStatus = "por-hacer";
         newTags = ["Por hacer"];
     }
 
@@ -159,27 +241,23 @@ export default function ProjectBoardPage() {
     const updatedTask = {
       ...newTasks[taskIndex],
       status: newStatus,
-      tags:
-        otherTags.length > 0
-          ? [newTags[0], ...otherTags] 
-          : newTags, 
-      commentsList: newTasks[taskIndex].commentsList, 
+      tags: otherTags.length > 0 ? [newTags[0], ...otherTags] : newTags,
+      commentsList: newTasks[taskIndex].commentsList,
       attachmentsList: newTasks[taskIndex].attachmentsList,
     };
     newTasks[taskIndex] = updatedTask;
-    setTasks(newTasks); 
+    setTasks(newTasks);
 
-    
     if (projectId) {
-      setUpdatingTaskStatus(draggableId); 
+      setUpdatingTaskStatus(draggableId);
       api
         .put(`/tasks/${projectId}/${updatedTask.id}`, {
           status: newStatus,
-          tags: updatedTask.tags, 
+          tags: updatedTask.tags,
         })
         .then((response) => {
           console.log("Task status updated in backend:", response.data);
-          
+
           if (response.data && response.data.id) {
             setTasks((prevTasks) =>
               prevTasks.map((t) =>
@@ -190,19 +268,19 @@ export default function ProjectBoardPage() {
         })
         .catch((error) => {
           console.error("Error updating task status in backend:", error);
-          
+
           setTasks(originalTasks);
           setErrorTasks(
             `Failed to update status for task ${updatedTask.taskId}.`
-          ); 
+          );
         })
         .finally(() => {
-          setUpdatingTaskStatus(null); 
+          setUpdatingTaskStatus(null);
         });
     } else {
       console.error("Cannot update task: Project ID is missing.");
       setErrorTasks("Cannot update task: Project ID is missing.");
-      
+
       setTasks(originalTasks);
     }
   };
@@ -212,7 +290,7 @@ export default function ProjectBoardPage() {
   ) => {
     setModalInitialStatus(status);
     setIsModalOpen(true);
-  }; 
+  };
   const handleSaveTask = (newTaskData: Omit<Task, "id">) => {
     if (!projectId) {
       console.error("Cannot save task: Project ID is missing.");
@@ -231,14 +309,13 @@ export default function ProjectBoardPage() {
         ...a,
         image: a.image || `https://picsum.photos/seed/${a.id}/32/32`,
       })),
-    }; 
+    };
     if (editingTask) {
-      
       api
         .put(`/tasks/${projectId}/${editingTask.id}`, taskDataWithImages)
         .then((response) => {
           console.log("Task updated in backend:", response.data);
-          
+
           if (response.data && response.data.id) {
             setTasks((prevTasks) =>
               prevTasks.map((task) =>
@@ -255,7 +332,7 @@ export default function ProjectBoardPage() {
               )
             );
           }
-          setEditingTask(null); 
+          setEditingTask(null);
           setIsModalOpen(false);
         })
         .catch((error) => {
@@ -301,14 +378,13 @@ export default function ProjectBoardPage() {
     }
 
     if (window.confirm("¿Estás seguro de que deseas eliminar esta tarea?")) {
-      setUpdatingTaskStatus(taskId); 
+      setUpdatingTaskStatus(taskId);
       try {
         await api.delete(`/tasks/${projectId}/${taskId}`);
 
         // Actualizamos el estado local eliminando la tarea
         setTasks((prevTasks) => prevTasks.filter((t) => t.id !== taskId));
 
-        
         console.log("Tarea eliminada con éxito");
       } catch (error) {
         console.error("Error al eliminar la tarea:", error);
@@ -339,34 +415,26 @@ export default function ProjectBoardPage() {
             <button className="text-gray-400 hover:text-gray-600">
               <Pencil size={18} />
             </button>
-          </div>
-
+          </div>{" "}
           <div className="flex items-center gap-2">
             {/* Avatares del Header */}
             <div className="flex -space-x-2">
-              <img
-                className="w-10 h-10 rounded-full border-2 border-white"
-                src="https://picsum.photos/seed/header1/40/40"
-                alt="Avatar 1"
-              />
-              <img
-                className="w-10 h-10 rounded-full border-2 border-white"
-                src="https://picsum.photos/seed/header2/40/40"
-                alt="Avatar 2"
-              />
-              <img
-                className="w-10 h-10 rounded-full border-2 border-white"
-                src="https://picsum.photos/seed/header3/40/40"
-                alt="Avatar 3"
-              />
-              <img
-                className="w-10 h-10 rounded-full border-2 border-white"
-                src="https://picsum.photos/seed/header4/40/40"
-                alt="Avatar 4"
-              />
-              <div className="w-10 h-10 bg-[#F2F4F7] rounded-full flex justify-center items-center border-2 border-white">
-                <span className="text-[#606C80] text-xs font-bold">+5</span>
-              </div>
+              {projectMembers.slice(0, 4).map((member) => (
+                <img
+                  key={member.id}
+                  className="w-10 h-10 rounded-full border-2 border-white"
+                  src={member.image}
+                  alt={`Avatar de ${member.username}`}
+                  title={member.username}
+                />
+              ))}
+              {projectMembers.length > 4 && (
+                <div className="w-10 h-10 bg-[#F2F4F7] rounded-full flex justify-center items-center border-2 border-white">
+                  <span className="text-[#606C80] text-xs font-bold">
+                    +{projectMembers.length - 4}
+                  </span>
+                </div>
+              )}
             </div>{" "}
             {/* Botón para abrir el modal de nueva tarea */}
             <button
@@ -419,7 +487,7 @@ export default function ProjectBoardPage() {
                 <span className="text-xs font-medium">Lista</span>
               </button>
             </div>
-            {/* Botón de GitHub Sheet */}
+            
             <button
               onClick={() => setIsGithubSheetOpen(true)}
               className="h-10 px-4 py-2 bg-white rounded-lg border border-[#EBEEF2] flex items-center gap-2"
@@ -478,24 +546,25 @@ export default function ProjectBoardPage() {
           ) : (
             <ListView tasks={tasks} />
           ))}
-        
+
         {updatingTaskStatus && (
           <div className="fixed bottom-4 right-4 bg-blue-500 text-white px-4 py-2 rounded shadow-lg">
             Actualizando tarea...
           </div>
         )}
-      </div>
+      </div>{" "}
       {/* Modal para crear tareas */}{" "}
       <CreateTaskModal
         isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false);
-          setEditingTask(null); 
+          setEditingTask(null);
         }}
         onSave={handleSaveTask}
         initialStatus={modalInitialStatus}
-        isSaving={savingTask} 
-        taskToEdit={editingTask} 
+        isSaving={savingTask}
+        taskToEdit={editingTask}
+        projectMembers={projectMembers}
       />
       {/* Sheet para información de GitHub */}
       <Sheet open={isGithubSheetOpen} onOpenChange={setIsGithubSheetOpen}>
@@ -509,15 +578,24 @@ export default function ProjectBoardPage() {
             </SheetTitle>
           </SheetHeader>
           <div className="flex flex-col gap-6 w-full">
+            {" "}
             {/* Ramas activas */}
             <div className="bg-[#FAFBFC] rounded-lg p-6 shadow border-none">
               <h3 className="font-bold text-lg mb-4 text-[#1F2633]">
                 Ramas activas
               </h3>
-              {githubLoading ? (
+              {!projectDetails?.githubRepo ? (
+                <p className="text-gray-500">
+                  No hay repositorio asociado para mostrar ramas.
+                </p>
+              ) : githubLoading ? (
                 <p>Cargando ramas...</p>
               ) : githubError ? (
                 <p className="text-red-500">{githubError}</p>
+              ) : githubBranches.length === 0 ? (
+                <p className="text-gray-500">
+                  No se encontraron ramas en este repositorio.
+                </p>
               ) : (
                 <ul className="space-y-2">
                   {githubBranches.map((branch) => (
@@ -527,7 +605,9 @@ export default function ProjectBoardPage() {
                     >
                       <span className="font-mono text-blue-700">{branch}</span>
                       <span className="ml-2 px-2 py-1 text-xs bg-green-100 text-green-700 rounded">
-                        Producción
+                        {branch === "main" || branch === "master"
+                          ? "Principal"
+                          : "Desarrollo"}
                       </span>
                     </li>
                   ))}
@@ -539,28 +619,87 @@ export default function ProjectBoardPage() {
               <h3 className="font-bold text-lg mb-4 text-[#1F2633]">
                 Repositorio
               </h3>
-              <p>
-                <a
-                  href={`https://github.com/empresa/${projectId}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 underline"
-                >
-                  github.com/empresa/{projectId}
-                </a>
-              </p>
-              <p className="text-sm text-gray-500 mt-2">
-                Último commit: hace 2h
-              </p>
-              <a
-                href={`https://github.com/empresa/${projectId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-2 inline-block px-3 py-1 border rounded text-xs bg-white hover:bg-gray-50"
-              >
-                Ver en GitHub
-              </a>
+              {projectDetails?.githubRepo ? (
+                <>
+                  <p>
+                    <a
+                      href={projectDetails.githubRepo.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 underline"
+                    >
+                      {projectDetails.githubRepo.url.replace("https://", "")}
+                    </a>
+                  </p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    Nombre del repositorio: {projectDetails.githubRepo.name}
+                  </p>
+                  <a
+                    href={projectDetails.githubRepo.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-block px-3 py-1 border rounded text-xs bg-white hover:bg-gray-50"
+                  >
+                    Ver en GitHub
+                  </a>
+                </>
+              ) : (
+                <p className="text-gray-500">
+                  Este proyecto no tiene un repositorio de GitHub asociado.
+                </p>
+              )}
             </div>
+            {/* Estadísticas del Repositorio */}
+            {projectDetails?.githubRepo && githubRepoInfo && (
+              <div className="bg-[#FAFBFC] rounded-lg p-6 shadow border-none">
+                <h3 className="font-bold text-lg mb-4 text-[#1F2633]">
+                  Estadísticas del Repositorio
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-white p-3 rounded-lg border border-gray-100">
+                    <p className="text-xs text-gray-500">Stars</p>
+                    <p className="font-bold text-lg">
+                      {githubRepoInfo.stargazers_count || 0}
+                    </p>
+                  </div>
+                  <div className="bg-white p-3 rounded-lg border border-gray-100">
+                    <p className="text-xs text-gray-500">Forks</p>
+                    <p className="font-bold text-lg">
+                      {githubRepoInfo.forks_count || 0}
+                    </p>
+                  </div>
+                  <div className="bg-white p-3 rounded-lg border border-gray-100">
+                    <p className="text-xs text-gray-500">Issues abiertas</p>
+                    <p className="font-bold text-lg">
+                      {githubRepoInfo.open_issues_count || 0}
+                    </p>
+                  </div>
+                  <div className="bg-white p-3 rounded-lg border border-gray-100">
+                    <p className="text-xs text-gray-500">Observadores</p>
+                    <p className="font-bold text-lg">
+                      {githubRepoInfo.watchers_count || 0}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-4 bg-white p-3 rounded-lg border border-gray-100">
+                  <p className="text-xs text-gray-500">Actualizado</p>
+                  <p className="font-medium">
+                    {githubRepoInfo.updated_at
+                      ? new Date(githubRepoInfo.updated_at).toLocaleDateString(
+                          "es-ES",
+                          {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          }
+                        )
+                      : "Fecha no disponible"}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </SheetContent>
       </Sheet>

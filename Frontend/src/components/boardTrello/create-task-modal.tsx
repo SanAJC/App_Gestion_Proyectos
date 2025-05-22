@@ -11,15 +11,21 @@ import {
   Tag,
   AlertCircle,
 } from "lucide-react";
-import { Task } from "@/types/task"; // Importamos el tipo Task desde el archivo común
+import { Task } from "@/types/task"; 
 
 type CreateTaskModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onSave: (task: Omit<Task, "id">) => void;
   initialStatus?: "por-hacer" | "en-proceso" | "hecho" | "por-verificar";
-  isSaving?: boolean; // Para manejar el estado de guardado
-  taskToEdit?: Task | null; // Para edición de tareas existentes
+  isSaving?: boolean; 
+  taskToEdit?: Task | null; 
+  projectMembers?: {
+    id: string;
+    email: string;
+    username: string;
+    image: string;
+  }[]; 
 };
 
 export default function CreateTaskModal({
@@ -28,16 +34,17 @@ export default function CreateTaskModal({
   onSave,
   initialStatus = "por-hacer",
   isSaving = false,
-  taskToEdit = null, // Valor por defecto para taskToEdit
+  taskToEdit = null, 
+  projectMembers = [], 
 }: CreateTaskModalProps) {
   const [title, setTitle] = useState("");
   const [taskId, setTaskId] = useState("");
   const [status, setStatus] = useState<
     "por-hacer" | "en-proceso" | "hecho" | "por-verificar"
   >(initialStatus);
-  const [assignees, setAssignees] = useState<{ id: string; image: string }[]>(
-    []
-  );
+  const [assignees, setAssignees] = useState<
+    { id: string; image: string; username?: string; email?: string }[]
+  >([]);
   const [tags, setTags] = useState<string[]>([]);
   const [selectedTag, setSelectedTag] = useState("");
   const [comments, setComments] = useState<string[]>(
@@ -48,25 +55,25 @@ export default function CreateTaskModal({
     taskToEdit?.attachments ? Array(taskToEdit.attachments).fill("") : []
   );
   const [newAttachment, setNewAttachment] = useState("");
-  // Reset form or initialize with task data when modal opens
+  
   useEffect(() => {
     if (isOpen) {
       if (taskToEdit) {
-        // Si estamos editando una tarea, cargamos sus datos
+        
         setTitle(taskToEdit.title);
         setTaskId(taskToEdit.taskId);
         setStatus(taskToEdit.status);
         setAssignees(taskToEdit.assignees);
         setTags(taskToEdit.tags || []);
         setSelectedTag("");
-        // Cargar comentarios si existen, o crear array vacío si no hay
+        
         setComments(taskToEdit.commentsList || []);
         setNewComment("");
-        // Cargar archivos adjuntos si existen, o crear array vacío si no hay
+        
         setAttachments(taskToEdit.attachmentsList || []);
         setNewAttachment("");
       } else {
-        // Si estamos creando una nueva tarea, reseteamos el formulario
+        
         setTitle("");
         setTaskId("");
         setStatus(initialStatus);
@@ -81,14 +88,14 @@ export default function CreateTaskModal({
     }
   }, [isOpen, initialStatus, taskToEdit]);
 
-  // Generate task ID automatically
+  
   useEffect(() => {
     if (isOpen && !taskToEdit) {
       const randomNum = Math.floor(Math.random() * 1000);
       setTaskId(`#UI${randomNum.toString().padStart(3, "0")}`);
     }
   }, [isOpen, taskToEdit]);
-  // Add default tag based on status
+  
   useEffect(() => {
     if (status === "por-hacer") {
       setTags((prevTags) => {
@@ -143,11 +150,11 @@ export default function CreateTaskModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate form
+    
     if (!title.trim()) {
       alert("Por favor ingresa un título para la tarea");
       return;
-    } // Create new task
+    } 
     const newTask: Omit<Task, "id"> = {
       title,
       taskId,
@@ -164,14 +171,41 @@ export default function CreateTaskModal({
     };
 
     onSave(newTask);
-    onClose(); // Cerrar el modal después de guardar
+    onClose(); 
   };
-
   const handleAddAssignee = () => {
+    if (projectMembers && projectMembers.length > 0) {
+      
+      return; 
+    }
+
+    
     const newAssignee = {
       id: `user-${assignees.length + 1}`,
       image: `https://picsum.photos/seed/user${assignees.length + 1}/32/32`,
     };
+    setAssignees([...assignees, newAssignee]);
+  };
+
+  const handleSelectAssignee = (member: {
+    id: string;
+    email: string;
+    username: string;
+    image: string;
+  }) => {
+    
+    if (assignees.some((a) => a.id === member.id)) {
+      return;
+    }
+
+    // Añadir el miembro a los asignados
+    const newAssignee = {
+      id: member.id,
+      image: member.image,
+      username: member.username,
+      email: member.email,
+    };
+
     setAssignees([...assignees, newAssignee]);
   };
 
@@ -282,7 +316,7 @@ export default function CreateTaskModal({
           </div>
           {/* Línea divisoria */}
           <div className="border-t border-[#EBEEF2] my-4"></div>{" "}
-          {/* Sección: Asignados */}
+          {/* Sección: Asignados */}{" "}
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-[#1F2633] mb-2">
               <User size={16} className="text-gray-400" />
@@ -299,7 +333,9 @@ export default function CreateTaskModal({
                     alt={`Avatar ${assignee.id}`}
                     className="w-6 h-6 rounded-full"
                   />
-                  <span className="text-xs text-gray-700">{assignee.id}</span>
+                  <span className="text-xs text-gray-700">
+                    {assignee.username || assignee.id}
+                  </span>
                   <button
                     type="button"
                     onClick={() => handleRemoveAssignee(assignee.id)}
@@ -310,14 +346,49 @@ export default function CreateTaskModal({
                 </div>
               ))}
             </div>
-            <button
-              type="button"
-              onClick={handleAddAssignee}
-              className="flex items-center gap-1 px-3 py-1 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200"
-            >
-              <Plus size={14} />
-              <span className="text-xs">Añadir asignado</span>
-            </button>
+
+            {projectMembers && projectMembers.length > 0 ? (
+              <div className="relative">
+                <select
+                  className="w-full px-3 py-2 border border-[#EBEEF2] rounded-lg text-sm"
+                  onChange={(e) => {
+                    const selectedId = e.target.value;
+                    if (selectedId) {
+                      const member = projectMembers.find(
+                        (m) => m.id === selectedId
+                      );
+                      if (member) {
+                        handleSelectAssignee(member);
+                      }
+                      e.target.value = ""; // Resetear el select
+                    }
+                  }}
+                  value=""
+                >
+                  <option value="" disabled>
+                    Seleccionar miembro
+                  </option>
+                  {projectMembers.map((member) => (
+                    <option
+                      key={member.id}
+                      value={member.id}
+                      disabled={assignees.some((a) => a.id === member.id)}
+                    >
+                      {member.username} ({member.email})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={handleAddAssignee}
+                className="flex items-center gap-1 px-3 py-1 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200"
+              >
+                <Plus size={14} />
+                <span className="text-xs">Añadir asignado</span>
+              </button>
+            )}
           </div>{" "}
           {/* Sección: Etiquetas */}
           <div>

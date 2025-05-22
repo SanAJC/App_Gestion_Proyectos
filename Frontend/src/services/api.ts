@@ -3,7 +3,7 @@ import axios from "axios";
 import { store } from "../store/store";
 
 const api = axios.create({
-  baseURL: "http://localhost:4000/api", // Ajusto a la URL correcta según tu backend
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:4000/api", 
 });
 
 api.interceptors.request.use((config) => {

@@ -83,7 +83,6 @@ const ProjectsPage: React.FC = () => {
   // Estado para el modal de confirmación de eliminación
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
-
   const fetchProjects = async () => {
     setLoading(true);
     try {
@@ -91,10 +90,27 @@ const ProjectsPage: React.FC = () => {
       console.log("Datos recibidos del servidor:", response.data);
       setProjects(response.data.projects);
       console.log("Proyectos después de setProjects:", response.data.projects);
+      setError(null); // Limpiar el error si la petición fue exitosa
     } catch (err: any) {
       console.error("Error al cargar proyectos:", err);
-      setError("Error al cargar proyectos.");
-      toast.error("Error al cargar proyectos.");
+      // Mensaje de error más descriptivo
+      if (err.code === "ERR_NETWORK") {
+        setError(
+          "Error de conexión con el servidor. Verifica que el servidor backend esté ejecutándose en http://localhost:4000"
+        );
+        toast.error(
+          "Error de conexión con el servidor. Verifica que el servidor backend esté ejecutándose."
+        );
+      } else {
+        setError(
+          `Error al cargar proyectos: ${
+            err.response?.data?.message || err.message
+          }`
+        );
+        toast.error(
+          "Error al cargar proyectos. Consulta la consola para más detalles."
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -195,14 +211,12 @@ const ProjectsPage: React.FC = () => {
         // Lógica para actualizar proyecto
         await api.put(`/projects/${editingProject.id}`, projectData);
         toast.success("Proyecto actualizado correctamente", {
-          icon: "✅",
           style: { backgroundColor: "#38A169", color: "white" },
         });
         fetchProjects(); // Volver a cargar proyectos después de actualizar
       } else {
         await api.post("/projects", projectData);
         toast.success("Proyecto creado correctamente", {
-          icon: "🚀",
           style: { backgroundColor: "#38A169", color: "white" },
         });
         fetchProjects();
@@ -227,7 +241,6 @@ const ProjectsPage: React.FC = () => {
     try {
       await api.delete(`/projects/${id}`);
       toast.success("Proyecto eliminado correctamente", {
-        icon: "🗑️",
         style: { backgroundColor: "#E53E3E", color: "white" },
       });
       setIsDeleteModalOpen(false);
@@ -247,32 +260,49 @@ const ProjectsPage: React.FC = () => {
       setLoading(false);
     }
   };
-
   // Función para abrir el modal de confirmación de eliminación
   const openDeleteModal = (project: Project) => {
     setProjectToDelete(project);
     setIsDeleteModalOpen(true);
-  }; // Añadir integrante
-  const handleAddMember = () => {
+  };
+
+  // Añadir integrante
+  const handleAddMember = async () => {
     // Asegurar que members sea un array incluso si es undefined o null
     const currentMembers = Array.isArray(form.members) ? form.members : [];
+    const email = form.memberInput.trim();
 
     // Verificar que el input no esté vacío y que no exista ya en la lista
-    if (
-      form.memberInput.trim() &&
-      !currentMembers.includes(form.memberInput.trim())
-    ) {
-      // Crear una nueva lista añadiendo el nuevo miembro
-      const updatedMembers = [...currentMembers, form.memberInput.trim()];
-      console.log("Miembros actualizados:", updatedMembers);
+    if (email && !currentMembers.includes(email)) {
+      try {
+        // Verificar si el correo existe en el sistema
+        const response = await api.get(
+          `/auth/check-user?email=${encodeURIComponent(email)}`
+        );
 
-      setForm({
-        ...form,
-        members: updatedMembers,
-        memberInput: "",
-      });
-    } else if (!form.memberInput.trim()) {
-      toast.warning("Por favor ingresa un nombre o email válido.");
+        if (response.data.exists) {
+          // Crear una nueva lista añadiendo el nuevo miembro
+          const updatedMembers = [...currentMembers, email];
+          console.log("Miembros actualizados:", updatedMembers);
+
+          toast.success(
+            `Usuario ${response.data.username || email} añadido correctamente`
+          );
+
+          setForm({
+            ...form,
+            members: updatedMembers,
+            memberInput: "",
+          });
+        } else {
+          toast.warning("No existe un usuario registrado con este correo.");
+        }
+      } catch (error) {
+        console.error("Error al verificar usuario:", error);
+        toast.error("Error al verificar el usuario. Intente nuevamente.");
+      }
+    } else if (!email) {
+      toast.warning("Por favor ingresa un correo electrónico válido.");
     } else {
       toast.info("Este integrante ya está en la lista.");
     }

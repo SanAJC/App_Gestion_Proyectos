@@ -17,7 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useState } from "react";
-import { Task } from "@/types/task"; 
+import { Task } from "@/types/task";
 
 type TaskProps = {
   task: Task;
@@ -178,26 +178,28 @@ export default function TaskCard({
             <div className="flex justify-between items-center">
               {/* Sección Izquierda: Avatares y Botón + */}
               <div className="flex items-center gap-2">
+                {" "}
                 {/* Grupo de Avatares */}
                 <div className="flex -space-x-2">
-                  {task.assignees.map((assignee, i) => (
+                  {task.assignees.slice(0, 4).map((assignee,) => (
                     <img
-                      key={assignee.id} // Usar assignee.id como key es mejor si es único
+                      key={assignee.id}
                       className="w-8 h-8 rounded-full border-2 border-white"
-                      // --- MODIFICACIÓN AQUÍ ---
-                      // Se usa picsum.photos para obtener imágenes aleatorias de 32x32 píxeles.
-                      // Añadimos `?random=${i}` para intentar obtener una imagen diferente por cada índice.
-                      // Podrías usar `?seed=${assignee.id}` si quieres que un mismo assignee tenga siempre la misma imagen aleatoria.
-                      src={`https://picsum.photos/32/32?random=${i}`}
-                      // --- FIN DE MODIFICACIÓN ---
-                      alt={`Avatar de ${assignee.id}`} // Es bueno tener un alt descriptivo
+                      src={
+                        assignee.image ||
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                          assignee.id
+                        )}&background=random`
+                      }
+                      alt={`Avatar de ${assignee.id}`}
+                      title={assignee.id}
                     />
                   ))}
-                  {/* Contador de Avatares Extra (si aplica) */}
-                  {task.assignees.length > 0 && ( // Este bloque "+5" podría tener lógica más compleja si necesitaras mostrar el número real de extras
+                  {/* Contador de Avatares Extra (solo si hay más de 4) */}
+                  {task.assignees.length > 4 && (
                     <div className="w-8 h-8 bg-[#F2F4F7] rounded-full flex justify-center items-center border-2 border-white">
                       <span className="text-center text-[#606C80] text-[10px] font-bold">
-                        +5
+                        +{task.assignees.length - 4}
                       </span>
                     </div>
                   )}

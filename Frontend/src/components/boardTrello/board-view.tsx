@@ -129,51 +129,6 @@ export default function BoardView({
             )}
           </Droppable>
         </div>
-        {/* Hecho Column */}
-        <div className="flex-1 min-w-0">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-2">
-              <h2 className="text-sm font-semibold text-[#1F2633]">Hecho</h2>
-              <Badge
-                variant="outline"
-                className="bg-[rgba(34,197,94,0.1)] text-[#16A34A] font-bold border-transparent"
-              >
-                {doneTasks.length}
-              </Badge>
-            </div>
-            <button className="text-[#C7CED9]">
-              <MoreHorizontal size={20} />
-            </button>
-          </div>
-
-          <Droppable droppableId="hecho">
-            {(provided) => (
-              <div
-                ref={provided.innerRef}
-                {...provided.droppableProps}
-                className="space-y-4"
-              >
-                {doneTasks.map((task, index) => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    index={index}
-                    projectId={projectId}
-                    onEdit={onEditTask}
-                    onDelete={onDeleteTask}
-                  />
-                ))}
-                {provided.placeholder}
-                <button
-                  onClick={() => onAddTask && onAddTask("hecho")}
-                  className="w-full p-2 bg-white rounded-lg border border-[#F2F4F7] flex justify-center items-center hover:bg-gray-50"
-                >
-                  <Plus className="text-[#C7CED9]" size={20} />
-                </button>
-              </div>
-            )}
-          </Droppable>
-        </div>
 
         {/* Por verificar Column */}
         <div className="flex-1 min-w-0">
@@ -214,6 +169,52 @@ export default function BoardView({
                 {provided.placeholder}
                 <button
                   onClick={() => onAddTask && onAddTask("por-verificar")}
+                  className="w-full p-2 bg-white rounded-lg border border-[#F2F4F7] flex justify-center items-center hover:bg-gray-50"
+                >
+                  <Plus className="text-[#C7CED9]" size={20} />
+                </button>
+              </div>
+            )}
+          </Droppable>
+        </div>
+
+        {/* Hecho Column */}
+        <div className="flex-1 min-w-0">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-[#1F2633]">Hecho</h2>
+              <Badge
+                variant="outline"
+                className="bg-[rgba(34,197,94,0.1)] text-[#16A34A] font-bold border-transparent"
+              >
+                {doneTasks.length}
+              </Badge>
+            </div>
+            <button className="text-[#C7CED9]">
+              <MoreHorizontal size={20} />
+            </button>
+          </div>
+
+          <Droppable droppableId="hecho">
+            {(provided) => (
+              <div
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+                className="space-y-4"
+              >
+                {doneTasks.map((task, index) => (
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    index={index}
+                    projectId={projectId}
+                    onEdit={onEditTask}
+                    onDelete={onDeleteTask}
+                  />
+                ))}
+                {provided.placeholder}
+                <button
+                  onClick={() => onAddTask && onAddTask("hecho")}
                   className="w-full p-2 bg-white rounded-lg border border-[#F2F4F7] flex justify-center items-center hover:bg-gray-50"
                 >
                   <Plus className="text-[#C7CED9]" size={20} />
