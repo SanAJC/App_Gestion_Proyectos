@@ -177,7 +177,9 @@ const ProjectsPage: React.FC = () => {
         ? { name: form.repo.split("/").pop() || "", url: form.repo }
         : undefined,
       status: "activo",
-      image: form.image || "https://via.placeholder.com/300x120?text=Proyecto",
+      image:
+        form.image ||
+        "https://www.visual-planning.com/es/wp-content/uploads/2020/11/Cuales-son-las-caracteristicas-imprescindibles-de-un-software-de-gestion-de-proyectos-Visual-Planning.jpg",
     };
 
     console.log("Datos a enviar:", projectData);
@@ -323,7 +325,7 @@ const ProjectsPage: React.FC = () => {
           <img
             src={
               project.image ||
-              "https://via.placeholder.com/300x120?text=Proyecto"
+              "https://www.visual-planning.com/es/wp-content/uploads/2020/11/Cuales-son-las-caracteristicas-imprescindibles-de-un-software-de-gestion-de-proyectos-Visual-Planning.jpg"
             } // Imagen por defecto
             alt={project.title}
             className="w-full h-32 object-cover"
@@ -743,7 +745,7 @@ const ProjectsPage: React.FC = () => {
                 <img
                   src={
                     detailProject.image ||
-                    "https://via.placeholder.com/300x120?text=Proyecto"
+                    "https://www.visual-planning.com/es/wp-content/uploads/2020/11/Cuales-son-las-caracteristicas-imprescindibles-de-un-software-de-gestion-de-proyectos-Visual-Planning.jpg"
                   }
                   alt={detailProject.title}
                   className="w-full h-32 object-cover rounded"

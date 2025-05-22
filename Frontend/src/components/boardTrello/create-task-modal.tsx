@@ -1,78 +1,145 @@
 "use client";
 
 import type React from "react";
-
 import { useState, useEffect } from "react";
-import { X, Plus } from "lucide-react";
-
-type Task = {
-  id: string;
-  title: string;
-  taskId: string;
-  status: "to-do" | "in-process" | "done" | "to-verify";
-  assignees: { id: string; image: string }[];
-  comments: number;
-  attachments: number;
-  tags?: string[];
-};
+import {
+  X,
+  Plus,
+  Paperclip,
+  MessageSquare,
+  User,
+  Tag,
+  AlertCircle,
+} from "lucide-react";
+import { Task } from "@/types/task"; // Importamos el tipo Task desde el archivo común
 
 type CreateTaskModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onSave: (task: Omit<Task, "id">) => void;
-  initialStatus?: "to-do" | "in-process" | "done" | "to-verify";
+  initialStatus?: "por-hacer" | "en-proceso" | "hecho" | "por-verificar";
+  isSaving?: boolean; // Para manejar el estado de guardado
+  taskToEdit?: Task | null; // Para edición de tareas existentes
 };
 
 export default function CreateTaskModal({
   isOpen,
   onClose,
   onSave,
-  initialStatus = "to-do",
+  initialStatus = "por-hacer",
+  isSaving = false,
+  taskToEdit = null, // Valor por defecto para taskToEdit
 }: CreateTaskModalProps) {
   const [title, setTitle] = useState("");
   const [taskId, setTaskId] = useState("");
   const [status, setStatus] = useState<
-    "to-do" | "in-process" | "done" | "to-verify"
+    "por-hacer" | "en-proceso" | "hecho" | "por-verificar"
   >(initialStatus);
   const [assignees, setAssignees] = useState<{ id: string; image: string }[]>(
     []
   );
   const [tags, setTags] = useState<string[]>([]);
   const [selectedTag, setSelectedTag] = useState("");
-
-  // Reset form when modal opens
+  const [comments, setComments] = useState<string[]>(
+    taskToEdit?.comments ? Array(taskToEdit.comments).fill("") : []
+  );
+  const [newComment, setNewComment] = useState("");
+  const [attachments, setAttachments] = useState<string[]>(
+    taskToEdit?.attachments ? Array(taskToEdit.attachments).fill("") : []
+  );
+  const [newAttachment, setNewAttachment] = useState("");
+  // Reset form or initialize with task data when modal opens
   useEffect(() => {
     if (isOpen) {
-      setTitle("");
-      setTaskId("");
-      setStatus(initialStatus);
-      setAssignees([]);
-      setTags([]);
-      setSelectedTag("");
+      if (taskToEdit) {
+        // Si estamos editando una tarea, cargamos sus datos
+        setTitle(taskToEdit.title);
+        setTaskId(taskToEdit.taskId);
+        setStatus(taskToEdit.status);
+        setAssignees(taskToEdit.assignees);
+        setTags(taskToEdit.tags || []);
+        setSelectedTag("");
+        // Cargar comentarios si existen, o crear array vacío si no hay
+        setComments(taskToEdit.commentsList || []);
+        setNewComment("");
+        // Cargar archivos adjuntos si existen, o crear array vacío si no hay
+        setAttachments(taskToEdit.attachmentsList || []);
+        setNewAttachment("");
+      } else {
+        // Si estamos creando una nueva tarea, reseteamos el formulario
+        setTitle("");
+        setTaskId("");
+        setStatus(initialStatus);
+        setAssignees([]);
+        setTags([]);
+        setSelectedTag("");
+        setComments([]);
+        setNewComment("");
+        setAttachments([]);
+        setNewAttachment("");
+      }
     }
-  }, [isOpen, initialStatus]);
+  }, [isOpen, initialStatus, taskToEdit]);
 
   // Generate task ID automatically
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !taskToEdit) {
       const randomNum = Math.floor(Math.random() * 1000);
       setTaskId(`#UI${randomNum.toString().padStart(3, "0")}`);
     }
-  }, [isOpen]);
-
+  }, [isOpen, taskToEdit]);
   // Add default tag based on status
   useEffect(() => {
-    if (status === "to-do") {
-      setTags(["To Do"]);
-    } else if (status === "in-process") {
-      setTags(["In Process"]);
-    } else if (status === "done") {
-      setTags(["Done"]);
-    } else if (status === "to-verify") {
-      setTags(["To Verify"]);
+    if (status === "por-hacer") {
+      setTags((prevTags) => {
+        if (prevTags.some((tag) => tag.toLowerCase() === "por hacer")) {
+          return prevTags;
+        }
+        return [
+          "Por hacer",
+          ...prevTags.filter(
+            (tag) => !["En proceso", "Hecho", "Por verificar"].includes(tag)
+          ),
+        ];
+      });
+    } else if (status === "en-proceso") {
+      setTags((prevTags) => {
+        if (prevTags.some((tag) => tag.toLowerCase() === "en proceso")) {
+          return prevTags;
+        }
+        return [
+          "En proceso",
+          ...prevTags.filter(
+            (tag) => !["Por hacer", "Hecho", "Por verificar"].includes(tag)
+          ),
+        ];
+      });
+    } else if (status === "hecho") {
+      setTags((prevTags) => {
+        if (prevTags.some((tag) => tag.toLowerCase() === "hecho")) {
+          return prevTags;
+        }
+        return [
+          "Hecho",
+          ...prevTags.filter(
+            (tag) => !["Por hacer", "En proceso", "Por verificar"].includes(tag)
+          ),
+        ];
+      });
+    } else if (status === "por-verificar") {
+      setTags((prevTags) => {
+        if (prevTags.some((tag) => tag.toLowerCase() === "por verificar")) {
+          return prevTags;
+        }
+        return [
+          "Por verificar",
+          ...prevTags.filter(
+            (tag) => !["Por hacer", "En proceso", "Hecho"].includes(tag)
+          ),
+        ];
+      });
     }
   }, [status]);
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -80,27 +147,30 @@ export default function CreateTaskModal({
     if (!title.trim()) {
       alert("Por favor ingresa un título para la tarea");
       return;
-    }
-
-    // Create new task
+    } // Create new task
     const newTask: Omit<Task, "id"> = {
       title,
       taskId,
       status,
       assignees,
-      comments: 0,
-      attachments: 0,
+      comments: comments.length,
+      commentsList: comments.filter((comment) => comment.trim() !== ""), // Filtrar comentarios vacíos
+      attachments: attachments.length,
+      attachmentsList: attachments.filter(
+        (attachment) => attachment.trim() !== ""
+      ), // Filtrar adjuntos vacíos
       tags,
+      coverImage: taskToEdit?.coverImage,
     };
 
     onSave(newTask);
-    onClose();
+    onClose(); // Cerrar el modal después de guardar
   };
 
   const handleAddAssignee = () => {
     const newAssignee = {
       id: `user-${assignees.length + 1}`,
-      image: "/placeholder.svg?height=32&width=32",
+      image: `https://picsum.photos/seed/user${assignees.length + 1}/32/32`,
     };
     setAssignees([...assignees, newAssignee]);
   };
@@ -115,65 +185,75 @@ export default function CreateTaskModal({
       setSelectedTag("");
     }
   };
-
-  const handleRemoveTag = (tag: string) => {
-    setTags(tags.filter((t) => t !== tag));
+  const handleRemoveTag = (tag: string, index: number) => {
+    // Solo permitimos eliminar etiquetas que no sean la primera (etiqueta de estado)
+    if (index > 0) {
+      setTags(tags.filter((t) => t !== tag));
+    }
   };
-
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-[#0000009e] bg-opacity-30 flex items-center justify-center z-50 text-left">
-      <div className="bg-white rounded-lg w-full max-w-md p-6 shadow-lg">
-        <div className="flex justify-between items-center mb-4">
+    <div className="fixed inset-0 bg-[#0000009e] bg-opacity-30 flex items-center justify-center z-50 text-left overflow-y-auto py-10">
+      <div className="bg-white rounded-lg w-full max-w-2xl p-6 shadow-lg my-auto">
+        <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-[#1F2633]">
-            Crear nueva tarea
+            {taskToEdit ? "Editar tarea" : "Crear nueva tarea"}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100"
           >
             <X size={20} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label
-              htmlFor="title"
-              className="block text-sm font-medium text-[#1F2633] mb-1"
-            >
-              Título
-            </label>
-            <input
-              type="text"
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 border border-[#EBEEF2] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Ingresa el título de la tarea"
-              required
-            />
-          </div>
-
-          <div className="mb-4">
-            <label
-              htmlFor="taskId"
-              className="block text-sm font-medium text-[#1F2633] mb-1"
-            >
-              ID de tarea
-            </label>
-            <input
-              type="text"
-              id="taskId"
-              value={taskId}
-              onChange={(e) => setTaskId(e.target.value)}
-              className="w-full px-3 py-2 border border-[#EBEEF2] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="#UI000"
-            />
-          </div>
-
-          <div className="mb-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Primera fila: Título e ID */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="md:col-span-2">
+              <label
+                htmlFor="title"
+                className="block text-sm font-medium text-[#1F2633] mb-1"
+              >
+                Título
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full px-3 py-2 border border-[#EBEEF2] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Ingresa el título de la tarea"
+                  required
+                />
+                {!title.trim() && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500">
+                    <AlertCircle size={16} />
+                  </div>
+                )}
+              </div>
+            </div>
+            <div>
+              <label
+                htmlFor="taskId"
+                className="block text-sm font-medium text-[#1F2633] mb-1"
+              >
+                ID de tarea
+              </label>
+              <input
+                type="text"
+                id="taskId"
+                value={taskId}
+                onChange={(e) => setTaskId(e.target.value)}
+                className="w-full px-3 py-2 border border-[#EBEEF2] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="#UI000"
+              />
+            </div>
+          </div>{" "}
+          {/* Segunda fila: Estado */}
+          <div>
             <label
               htmlFor="status"
               className="block text-sm font-medium text-[#1F2633] mb-1"
@@ -186,70 +266,77 @@ export default function CreateTaskModal({
               onChange={(e) =>
                 setStatus(
                   e.target.value as
-                    | "to-do"
-                    | "in-process"
-                    | "done"
-                    | "to-verify"
+                    | "por-hacer"
+                    | "en-proceso"
+                    | "hecho"
+                    | "por-verificar"
                 )
               }
               className="w-full px-3 py-2 border border-[#EBEEF2] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="to-do">To Do</option>
-              <option value="in-process">In Process</option>
-              <option value="done">Done</option>
-              <option value="to-verify">To Verify</option>
+              <option value="por-hacer">Por hacer</option>
+              <option value="en-proceso">En proceso</option>
+              <option value="hecho">Terminada</option>
+              <option value="por-verificar">Por verificar</option>
             </select>
           </div>
-
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-[#1F2633] mb-1">
-              Asignados
+          {/* Línea divisoria */}
+          <div className="border-t border-[#EBEEF2] my-4"></div>{" "}
+          {/* Sección: Asignados */}
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-[#1F2633] mb-2">
+              <User size={16} className="text-gray-400" />
+              <span>Asignados</span>
             </label>
             <div className="flex flex-wrap gap-2 mb-2">
               {assignees.map((assignee) => (
                 <div
                   key={assignee.id}
-                  className="flex items-center bg-gray-100 rounded-full p-1"
+                  className="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded-lg"
                 >
                   <img
-                    src={assignee.image || "/placeholder.svg"}
-                    alt="Avatar"
+                    src={assignee.image}
+                    alt={`Avatar ${assignee.id}`}
                     className="w-6 h-6 rounded-full"
                   />
+                  <span className="text-xs text-gray-700">{assignee.id}</span>
                   <button
                     type="button"
                     onClick={() => handleRemoveAssignee(assignee.id)}
-                    className="ml-1 text-gray-500 hover:text-gray-700"
+                    className="text-gray-500 hover:text-red-500"
                   >
                     <X size={14} />
                   </button>
                 </div>
               ))}
-              <button
-                type="button"
-                onClick={handleAddAssignee}
-                className="flex items-center justify-center w-6 h-6 maxiPrueba rounded-full bg-gray-100 hover:bg-gray-200"
-              >
-                <Plus size={14} />
-              </button>
             </div>
-          </div>
-
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-[#1F2633] mb-1">
-              Etiquetas
+            <button
+              type="button"
+              onClick={handleAddAssignee}
+              className="flex items-center gap-1 px-3 py-1 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200"
+            >
+              <Plus size={14} />
+              <span className="text-xs">Añadir asignado</span>
+            </button>
+          </div>{" "}
+          {/* Sección: Etiquetas */}
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-[#1F2633] mb-2">
+              <Tag size={16} className="text-gray-400" />
+              <span>Etiquetas</span>
             </label>
             <div className="flex flex-wrap gap-2 mb-2">
-              {tags.map((tag) => (
+              {tags.map((tag, index) => (
                 <div
-                  key={tag}
-                  className="flex items-center bg-gray-100 rounded-full px-2 py-1"
+                  key={index}
+                  className="flex items-center gap-1 px-2 py-1 bg-blue-100 rounded-lg"
                 >
-                  <span className="text-xs">{tag}</span>
+                  <span className="text-xs text-blue-700">{tag}</span>
                   <button
                     type="button"
-                    onClick={() => handleRemoveTag(tag)}
-                    className="ml-1 text-gray-500 hover:text-gray-700"
+                    onClick={() => handleRemoveTag(tag, index)}
+                    className="text-blue-500 hover:text-red-500"
+                    disabled={index === 0} // Prevenir eliminar la etiqueta de estado
                   >
                     <X size={14} />
                   </button>
@@ -261,32 +348,185 @@ export default function CreateTaskModal({
                 type="text"
                 value={selectedTag}
                 onChange={(e) => setSelectedTag(e.target.value)}
-                className="flex-1 px-3 py-2 border border-[#EBEEF2] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Nueva etiqueta"
+                className="flex-1 px-3 py-1 border border-[#EBEEF2] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               />
               <button
                 type="button"
                 onClick={handleAddTag}
-                className="px-3 py-2 bg-gray-100 rounded-lg hover:bg-gray-200"
+                disabled={!selectedTag}
+                className="px-3 py-1 bg-blue-500 text-white rounded-lg text-sm disabled:bg-gray-300"
               >
                 Añadir
               </button>
             </div>
           </div>
-
-          <div className="flex justify-end gap-2">
+          {/* Línea divisoria */}
+          <div className="border-t border-[#EBEEF2] my-4"></div>{" "}
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-[#1F2633] mb-2">
+              <MessageSquare size={16} className="text-gray-400" />
+              <span>Comentarios ({comments.length})</span>
+            </label>
+            <div className="flex flex-col gap-2 mb-3 max-h-40 overflow-y-auto">
+              {comments.map((comment, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg border border-[#EBEEF2]"
+                >
+                  <textarea
+                    value={comment}
+                    onChange={(e) => {
+                      const newComments = [...comments];
+                      newComments[index] = e.target.value;
+                      setComments(newComments);
+                    }}
+                    className="flex-1 px-3 py-2 bg-white border border-[#EBEEF2] rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none text-sm"
+                    placeholder="Escribe un comentario"
+                    rows={2}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newComments = comments.filter(
+                        (_, i) => i !== index
+                      );
+                      setComments(newComments);
+                    }}
+                    className="text-gray-400 hover:text-red-500 flex-shrink-0 p-1 rounded-full hover:bg-gray-100"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <textarea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Nuevo comentario"
+                className="flex-1 px-3 py-2 border border-[#EBEEF2] rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none text-sm"
+                rows={2}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (newComment.trim()) {
+                    setComments([...comments, newComment.trim()]);
+                    setNewComment("");
+                  }
+                }}
+                disabled={!newComment.trim()}
+                className="px-3 h-10 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600 disabled:bg-gray-300 flex-shrink-0 flex items-center gap-1"
+              >
+                <Plus size={14} />
+                <span>Añadir</span>
+              </button>
+            </div>
+          </div>{" "}
+          {/* Línea divisoria */}
+          <div className="border-t border-[#EBEEF2] my-4"></div>
+          {/* Sección: Archivos adjuntos */}
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-[#1F2633] mb-2">
+              <Paperclip size={16} className="text-gray-400" />
+              <span>Archivos adjuntos ({attachments.length})</span>
+            </label>
+            <div className="flex flex-col gap-2 mb-3 max-h-40 overflow-y-auto">
+              {attachments.map((attachment, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg border border-[#EBEEF2]"
+                >
+                  <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-white border border-[#EBEEF2] rounded-lg text-sm text-gray-700 truncate">
+                    <Paperclip className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    <span className="truncate">
+                      {attachment.split("/").pop() || attachment}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newAttachments = attachments.filter(
+                        (_, i) => i !== index
+                      );
+                      setAttachments(newAttachments);
+                    }}
+                    className="text-gray-400 hover:text-red-500 flex-shrink-0 p-1 rounded-full hover:bg-gray-100"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <label className="flex-1 flex items-center justify-center gap-2 px-3 py-2 border border-dashed border-[#EBEEF2] rounded-lg hover:bg-gray-50 cursor-pointer text-sm text-gray-600 transition-colors">
+                <input
+                  type="file"
+                  className="hidden"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      const file = e.target.files[0];
+                      const fileName = file.name;
+                      // En un entorno real, aquí subirías el archivo a un servidor
+                      // y obtendrías la URL. Por ahora, usaremos un nombre local ficticio
+                      setAttachments([...attachments, `local://${fileName}`]);
+                      e.target.value = ""; // Reset input
+                    }
+                  }}
+                />
+                <Paperclip size={14} />
+                <span>Seleccionar archivo</span>
+              </label>
+            </div>
+          </div>{" "}
+          {/* Línea divisoria */}
+          <div className="border-t border-[#EBEEF2] my-6"></div>
+          {/* Botones de acción */}
+          <div className="flex justify-end items-center gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-[#EBEEF2] rounded-lg hover:bg-gray-50"
+              className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-[#2C8780] text-white rounded-lg hover:bg-opacity-90"
+              disabled={isSaving || !title.trim()}
+              className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
+                isSaving || !title.trim()
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-[#2C8780] hover:bg-[#236b64]"
+              } text-white`}
             >
-              Guardar
+              {isSaving ? (
+                <>
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  <span>Guardando...</span>
+                </>
+              ) : (
+                <span>{taskToEdit ? "Actualizar" : "Guardar"}</span>
+              )}
             </button>
           </div>
         </form>

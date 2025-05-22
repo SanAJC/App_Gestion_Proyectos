@@ -1,31 +1,37 @@
-
 // Tipo para los usuarios
 export type User = {
-  uid?: string; 
+  uid?: string;
   username: string;
   email: string;
-  rol: "admin" | "user"; 
+  rol: "admin" | "user";
 };
-  
+
 export type Task = {
-  id?: string; 
+  id?: string;
   title: string;
-  description: string;
-  status: "pendiente" | "en-progreso" | "completada"; 
-  assignedTo: string; // UID del usuario asignado
-  createdAt: Date; // Convertir `Timestamp` de Firebase a `Date`
-  dueDate: Date;
+  taskId: string;
+  description?: string;
+  status: "por-hacer" | "en-proceso" | "hecho" | "por-verificar";
+  assignees: { id: string; image: string }[];
+  comments: number; // Total de comentarios
+  commentsList?: string[]; // Lista de comentarios
+  attachments: number; // Total de archivos adjuntos
+  attachmentsList?: string[]; // Lista de archivos adjuntos
+  tags?: string[];
+  coverImage?: string;
+  createdAt?: Date | string; // Puede ser Date o string ISO
+  dueDate?: Date | string;
 };
-  
+
 export type Project = {
-  id?: string; 
-  miembros: string[]; 
+  id?: string;
+  miembros: string[];
   title: string;
   description: string;
   githubRepo: GitHubRepo;
-  ownerId: string; 
-  status: "activo" | "inactivo" | "finalizado"; 
-  tasks?: Task[]; 
+  ownerId: string;
+  status: "activo" | "inactivo" | "finalizado";
+  tasks?: Task[];
 };
 
 export type GitHubTokenResponse = {

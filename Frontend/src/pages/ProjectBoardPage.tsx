@@ -1,208 +1,109 @@
+// src/pages/ProjectBoardPage.tsx
 "use client";
 
 import { useState, useEffect } from "react";
-import { Pencil, Search,  LayoutGrid, List, Github } from "lucide-react";
+import { useParams } from "react-router-dom";
+import { Pencil, Search, LayoutGrid, List, Github } from "lucide-react";
 import BoardView from "@/components/boardTrello/board-view";
 import ListView from "@/components/boardTrello/list-view";
 import CreateTaskModal from "@/components/boardTrello/create-task-modal";
 import Sidebar from "@/components/boardTrello/sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-
-// Tipos para nuestros datos
-type Task = {
-  id: string;
-  title: string;
-  taskId: string;
-  status: "to-do" | "in-process" | "done" | "to-verify";
-  assignees: { id: string; image: string }[];
-  comments: number;
-  attachments: number;
-  tags?: string[];
-  // Opcional: Añadir una imagen principal para la card si quieres
-  coverImage?: string;
-};
-
-// Datos iniciales para las tareas (CON IMÁGENES ALEATORIAS)
-const initialTasks: Task[] = [
-  {
-    id: "task-1",
-    title: "Model Answer",
-    taskId: "#UI005",
-    status: "to-do",
-    assignees: [
-      // Imagen aleatoria para user-1 (será la misma para user-1 en otras tareas)
-      { id: "user-1", image: "https://picsum.photos/seed/user1/32/32" },
-      // Imagen aleatoria para user-2
-      { id: "user-2", image: "https://picsum.photos/seed/user2/32/32" },
-    ],
-    comments: 2,
-    attachments: 4,
-    tags: ["To Do"],
-    // Añadimos una imagen de portada aleatoria para esta card
-    coverImage: "https://picsum.photos/seed/task1cover/400/200",
-  },
-  {
-    id: "task-2",
-    title: "Add authentication pages",
-    taskId: "#UI008",
-    status: "to-do",
-    assignees: [], // Sin asignados
-    comments: 0,
-    attachments: 0,
-    tags: ["To Do"],
-     // Sin imagen de portada
-  },
-  {
-    id: "task-3",
-    title: "Profile Page Structure",
-    taskId: "#UI006",
-    status: "to-do",
-    assignees: [
-       // Imagen aleatoria para user-3
-      { id: "user-3", image: "https://picsum.photos/seed/user3/32/32" }
-    ],
-    comments: 2,
-    attachments: 4,
-    tags: ["To Do"],
-    // Otra imagen de portada
-    coverImage: "https://picsum.photos/seed/task3cover/400/200",
-  },
-  {
-    id: "task-4",
-    title: "Create calendar, chat and email app pages",
-    taskId: "#UI003",
-    status: "to-do",
-    assignees: [
-      { id: "user-1", image: "https://picsum.photos/seed/user1/32/32" },
-      { id: "user-2", image: "https://picsum.photos/seed/user2/32/32" },
-    ],
-    comments: 2,
-    attachments: 4,
-    tags: ["Development", "Backlog"],
-     // Sin imagen de portada
-  },
-  {
-    id: "task-5",
-    title: "Model Answer",
-    taskId: "#002",
-    status: "in-process",
-    assignees: [
-      { id: "user-1", image: "https://picsum.photos/seed/user1/32/32" },
-      { id: "user-2", image: "https://picsum.photos/seed/user2/32/32" },
-    ],
-    comments: 2,
-    attachments: 4,
-    tags: ["In Process"],
-    // Otra imagen de portada
-    coverImage: "https://picsum.photos/seed/task5cover/400/200",
-  },
-  {
-    id: "task-6",
-    title: "Model Answer",
-    taskId: "#002",
-    status: "in-process",
-    assignees: [
-      { id: "user-1", image: "https://picsum.photos/seed/user1/32/32" },
-      { id: "user-2", image: "https://picsum.photos/seed/user2/32/32" },
-    ],
-    comments: 2,
-    attachments: 4,
-    tags: ["In Process"],
-     // Sin imagen de portada
-  },
-  {
-    id: "task-7",
-    title: "Model Answer",
-    taskId: "#002",
-    status: "done",
-    assignees: [
-      { id: "user-1", image: "https://picsum.photos/seed/user1/32/32" },
-      { id: "user-2", image: "https://picsum.photos/seed/user2/32/32" },
-    ],
-    comments: 2,
-    attachments: 4,
-    tags: ["Done"],
-     // Sin imagen de portada
-  },
-  {
-    id: "task-8",
-    title: "Create calendar, chat and email app pages",
-    taskId: "#002",
-    status: "done",
-    assignees: [],
-    comments: 0,
-    attachments: 0,
-    tags: ["Done"],
-    // Otra imagen de portada
-    coverImage: "https://picsum.photos/seed/task8cover/400/200",
-  },
-  {
-    id: "task-9",
-    title: "Product Design, Figma, Sketch (Software), Prototype",
-    taskId: "#002",
-    status: "done",
-    assignees: [
-      // Imagen aleatoria para user-4
-      { id: "user-4", image: "https://picsum.photos/seed/user4/32/32" }
-    ],
-    comments: 2,
-    attachments: 4,
-    tags: ["Done"],
-     // Sin imagen de portada
-  },
-  {
-    id: "task-10",
-    title: "Model Answer",
-    taskId: "#002",
-    status: "done", // Cambiado a done para que aparezca en esa columna si no existe 'to-verify' como columna visible
-    assignees: [
-      { id: "user-1", image: "https://picsum.photos/seed/user1/32/32" },
-      // Imagen aleatoria para user-5
-      { id: "user-5", image: "https://picsum.photos/seed/user5/32/32" },
-    ],
-    comments: 2,
-    attachments: 4,
-    tags: ["Done"], // Cambiado tag a 'Done'
-    // Otra imagen de portada
-    coverImage: "https://picsum.photos/seed/task10cover/400/200",
-  },
-];
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import api from "@/services/api"; 
+import { Task } from "@/types/task"; 
 
 export default function ProjectBoardPage() {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const { projectId } = useParams<{ projectId: string }>();
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [activeView, setActiveView] = useState<"board" | "list">("board");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalInitialStatus, setModalInitialStatus] = useState<
-    "to-do" | "in-process" | "done" | "to-verify"
-  >("to-do");
+    "por-hacer" | "en-proceso" | "hecho" | "por-verificar"
+  >("por-hacer");
   const [isGithubSheetOpen, setIsGithubSheetOpen] = useState(false);
   const [githubBranches, setGithubBranches] = useState<string[]>([]);
   const [githubLoading, setGithubLoading] = useState(false);
   const [githubError, setGithubError] = useState<string | null>(null);
+  const [loadingTasks, setLoadingTasks] = useState(true);
+  const [errorTasks, setErrorTasks] = useState<string | null>(null);
+  const [savingTask, setSavingTask] = useState(false);
+  const [updatingTaskStatus, setUpdatingTaskStatus] = useState<string | null>(
+    null
+  ); 
+  const [editingTask, setEditingTask] = useState<Task | null>(null); 
 
+  // Función para obtener las tareas del backend
+  const fetchTasks = () => {
+    if (projectId) {
+      setLoadingTasks(true);
+      setErrorTasks(null);
+      api
+        .get(`/tasks/${projectId}`)
+        .then((response) => {
+          
+          const tasksData = response.data.tasks || response.data;
+
+          if (Array.isArray(tasksData)) {
+            setTasks(tasksData);
+          } else {
+            console.error(
+              "API did not return an array on fetch:",
+              response.data
+            );
+            setTasks([]);
+            setErrorTasks("Invalid data format from API.");
+          }
+          setLoadingTasks(false);
+        })
+        .catch((error) => {
+          console.error("Error fetching tasks:", error);
+          setErrorTasks("Failed to load tasks.");
+          setLoadingTasks(false);
+        });
+    }
+  };
+
+  
+  useEffect(() => {
+    fetchTasks();
+  }, [projectId]);
+
+  
   useEffect(() => {
     if (isGithubSheetOpen) {
       setGithubLoading(true);
       setGithubError(null);
-      // Ejemplo usando fetch directamente a la API pública de GitHub
-      fetch("https://api.github.com/repos/empresa/proyecto-1/branches")
-        .then(res => res.json())
-        .then(data => {
-          setGithubBranches(data.map((b: any) => b.name));
+      fetch(`https://api.github.com/repos/empresa/${projectId}/branches`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data)) {
+            setGithubBranches(data.map((b: any) => b.name));
+          } else {
+            console.error("GitHub API did not return an array:", data);
+            setGithubBranches([]);
+            setGithubError("Invalid data format from GitHub API.");
+          }
           setGithubLoading(false);
         })
-        .catch(err => {
-          setGithubError("Error al cargar ramas");
+        .catch((err) => {
+          console.error("Error al cargar ramas de GitHub:", err);
+          setGithubError("Error al cargar ramas de GitHub");
           setGithubLoading(false);
         });
     }
-  }, [isGithubSheetOpen]);
+  }, [isGithubSheetOpen, projectId]);
 
-  // Función para manejar el drag and drop
+  
   const onDragEnd = (result: any) => {
     const { destination, source, draggableId } = result;
 
+    
     if (
       !destination ||
       (destination.droppableId === source.droppableId &&
@@ -211,91 +112,229 @@ export default function ProjectBoardPage() {
       return;
     }
 
+    
     const task = tasks.find((t) => t.id === draggableId);
-    if (!task) return;
+    if (!task) return; 
 
+    
+    const originalTasks = [...tasks];
+
+    
     const newTasks = [...tasks];
     const taskIndex = newTasks.findIndex((t) => t.id === draggableId);
-
-    let newStatus: "to-do" | "in-process" | "done" | "to-verify";
-    let newTags: string[] = [];
-
+    let newStatus: "por-hacer" | "en-proceso" | "hecho" | "por-verificar";
+    let newTags: string[] = []; 
     switch (destination.droppableId) {
-      case "to-do":
-        newStatus = "to-do";
-        newTags = ["To Do"];
+      case "por-hacer":
+        newStatus = "por-hacer";
+        newTags = ["Por hacer"];
         break;
-      case "in-process":
-        newStatus = "in-process";
-        newTags = ["In Process"];
+      case "en-proceso":
+        newStatus = "en-proceso";
+        newTags = ["En proceso"];
         break;
-      case "done":
-        newStatus = "done";
-        newTags = ["Done"];
+      case "hecho":
+        newStatus = "hecho";
+        newTags = ["Hecho"];
         break;
-      // Asegúrate de tener una columna 'to-verify' si usas este estado
-      case "to-verify":
-         newStatus = "to-verify";
-         newTags = ["To Verify"];
-         break;
+      case "por-verificar":
+        newStatus = "por-verificar";
+        newTags = ["Por verificar"];
+        break;
       default:
-        newStatus = "to-do"; // Estado por defecto
-        newTags = ["To Do"];
+        newStatus = "por-hacer"; 
+        newTags = ["Por hacer"];
     }
 
-    newTasks[taskIndex] = {
+    // Mantener todas las etiquetas adicionales que no sean de estado
+    const otherTags =
+      task.tags && task.tags.length > 1
+        ? task.tags.filter(
+            (tag) =>
+              !["Por hacer", "En proceso", "Hecho", "Por verificar"].includes(
+                tag
+              )
+          )
+        : [];
+    const updatedTask = {
       ...newTasks[taskIndex],
       status: newStatus,
       tags:
-        task.tags && task.tags.length > 1
-          ? [newTags[0], ...task.tags.slice(1)]
-          : newTags,
+        otherTags.length > 0
+          ? [newTags[0], ...otherTags] 
+          : newTags, 
+      commentsList: newTasks[taskIndex].commentsList, 
+      attachmentsList: newTasks[taskIndex].attachmentsList,
     };
+    newTasks[taskIndex] = updatedTask;
+    setTasks(newTasks); 
 
-    setTasks(newTasks);
+    
+    if (projectId) {
+      setUpdatingTaskStatus(draggableId); 
+      api
+        .put(`/tasks/${projectId}/${updatedTask.id}`, {
+          status: newStatus,
+          tags: updatedTask.tags, 
+        })
+        .then((response) => {
+          console.log("Task status updated in backend:", response.data);
+          
+          if (response.data && response.data.id) {
+            setTasks((prevTasks) =>
+              prevTasks.map((t) =>
+                t.id === updatedTask.id ? response.data : t
+              )
+            );
+          }
+        })
+        .catch((error) => {
+          console.error("Error updating task status in backend:", error);
+          
+          setTasks(originalTasks);
+          setErrorTasks(
+            `Failed to update status for task ${updatedTask.taskId}.`
+          ); 
+        })
+        .finally(() => {
+          setUpdatingTaskStatus(null); 
+        });
+    } else {
+      console.error("Cannot update task: Project ID is missing.");
+      setErrorTasks("Cannot update task: Project ID is missing.");
+      
+      setTasks(originalTasks);
+    }
   };
-
+  // *** FIN MODIFICACIÓN onDragEnd ***
   const openModalWithStatus = (
-    status: "to-do" | "in-process" | "done" | "to-verify"
+    status: "por-hacer" | "en-proceso" | "hecho" | "por-verificar"
   ) => {
     setModalInitialStatus(status);
     setIsModalOpen(true);
-  };
-
+  }; 
   const handleSaveTask = (newTaskData: Omit<Task, "id">) => {
-    const newTask: Task = {
+    if (!projectId) {
+      console.error("Cannot save task: Project ID is missing.");
+      setErrorTasks("Cannot save task: Project ID is missing.");
+      setIsModalOpen(false);
+      return;
+    }
+
+    setSavingTask(true);
+    setErrorTasks(null);
+
+    // Preparar los datos para la API con imágenes por defecto
+    const taskDataWithImages = {
       ...newTaskData,
-      id: `task-${Date.now()}`, // Usar Date.now() para un ID más único
-       // Opcional: Añadir imagen de portada por defecto o dejarla undefined
-       // coverImage: "https://picsum.photos/seed/newtaskcover/400/200",
-      // Asegurarse que los assignees tengan URLs de imagen válidas si se añaden
-      assignees: newTaskData.assignees.map(a => ({
-          ...a,
-          image: a.image || `https://picsum.photos/seed/${a.id}/32/32` // Asignar imagen si no la tiene
-      }))
-    };
-    setTasks([...tasks, newTask]);
+      assignees: newTaskData.assignees.map((a) => ({
+        ...a,
+        image: a.image || `https://picsum.photos/seed/${a.id}/32/32`,
+      })),
+    }; 
+    if (editingTask) {
+      
+      api
+        .put(`/tasks/${projectId}/${editingTask.id}`, taskDataWithImages)
+        .then((response) => {
+          console.log("Task updated in backend:", response.data);
+          
+          if (response.data && response.data.id) {
+            setTasks((prevTasks) =>
+              prevTasks.map((task) =>
+                task.id === editingTask.id ? response.data : task
+              )
+            );
+          } else {
+            // Si no se recibe la tarea completa del backend, usamos los datos locales
+            setTasks((prevTasks) =>
+              prevTasks.map((task) =>
+                task.id === editingTask.id
+                  ? { ...task, ...taskDataWithImages, id: editingTask.id }
+                  : task
+              )
+            );
+          }
+          setEditingTask(null); 
+          setIsModalOpen(false);
+        })
+        .catch((error) => {
+          console.error("Error updating task in backend:", error);
+          setErrorTasks("Error al actualizar la tarea.");
+        })
+        .finally(() => {
+          setSavingTask(false);
+        });
+    } else {
+      // Crear nueva tarea
+      api
+        .post(`/tasks/${projectId}`, taskDataWithImages)
+        .then((response) => {
+          console.log("Task created in backend:", response.data);
+          const createdTask = response.data as Task;
+          setTasks((prevTasks) => [...prevTasks, createdTask]);
+          setIsModalOpen(false);
+        })
+        .catch((error) => {
+          console.error("Error creating task in backend:", error);
+          setErrorTasks("Error al crear la tarea.");
+        })
+        .finally(() => {
+          setSavingTask(false);
+        });
+    }
   };
 
+  // Función para editar una tarea
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
+    setModalInitialStatus(task.status);
+    setIsModalOpen(true);
+  };
+
+  // Función para eliminar una tarea
+  const handleDeleteTask = async (taskId: string) => {
+    if (!projectId) {
+      console.error("Cannot delete task: Project ID is missing.");
+      setErrorTasks("Cannot delete task: Project ID is missing.");
+      return;
+    }
+
+    if (window.confirm("¿Estás seguro de que deseas eliminar esta tarea?")) {
+      setUpdatingTaskStatus(taskId); 
+      try {
+        await api.delete(`/tasks/${projectId}/${taskId}`);
+
+        // Actualizamos el estado local eliminando la tarea
+        setTasks((prevTasks) => prevTasks.filter((t) => t.id !== taskId));
+
+        
+        console.log("Tarea eliminada con éxito");
+      } catch (error) {
+        console.error("Error al eliminar la tarea:", error);
+        setErrorTasks("No se pudo eliminar la tarea.");
+      } finally {
+        setUpdatingTaskStatus(null);
+      }
+    }
+  };
   // Filtrar tareas por estado
-  const todoTasks = tasks.filter((task) => task.status === "to-do");
-  const inProcessTasks = tasks.filter((task) => task.status === "in-process");
-  const doneTasks = tasks.filter((task) => task.status === "done");
-  // Opcional: Si tienes la columna "To Verify"
-  // const toVerifyTasks = tasks.filter((task) => task.status === "to-verify");
+  const todoTasks = tasks.filter((task) => task.status === "por-hacer");
+  const inProcessTasks = tasks.filter((task) => task.status === "en-proceso");
+  const doneTasks = tasks.filter((task) => task.status === "hecho");
+  const toVerifyTasks = tasks.filter((task) => task.status === "por-verificar"); // Añadida si usas esta columna
 
   return (
     <div className="flex h-screen bg-[#f2f2f2]">
       <SidebarProvider>
         <Sidebar />
       </SidebarProvider>
-
       <div className="flex-1 overflow-auto">
-        {/* Header (CON IMÁGENES ALEATORIAS) */}
+        {/* Header */}
         <div className="px-6 pt-5 pb-4 flex justify-between items-center border-b border-gray-200">
           <div className="flex items-center gap-2">
             <h1 className="text-[#1F2633] text-2xl font-bold">
-              Centro de actividades
+              Centro de actividades {projectId ? `(${projectId})` : ""}
             </h1>
             <button className="text-gray-400 hover:text-gray-600">
               <Pencil size={18} />
@@ -303,39 +342,40 @@ export default function ProjectBoardPage() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Avatares del Header */}
             <div className="flex -space-x-2">
-              {/* --- Imágenes de Header Modificadas --- */}
               <img
                 className="w-10 h-10 rounded-full border-2 border-white"
-                src="https://picsum.photos/seed/header1/40/40" // Imagen aleatoria 1
+                src="https://picsum.photos/seed/header1/40/40"
                 alt="Avatar 1"
               />
               <img
                 className="w-10 h-10 rounded-full border-2 border-white"
-                src="https://picsum.photos/seed/header2/40/40" // Imagen aleatoria 2
+                src="https://picsum.photos/seed/header2/40/40"
                 alt="Avatar 2"
               />
               <img
                 className="w-10 h-10 rounded-full border-2 border-white"
-                src="https://picsum.photos/seed/header3/40/40" // Imagen aleatoria 3
+                src="https://picsum.photos/seed/header3/40/40"
                 alt="Avatar 3"
               />
               <img
                 className="w-10 h-10 rounded-full border-2 border-white"
-                src="https://picsum.photos/seed/header4/40/40" // Imagen aleatoria 4
+                src="https://picsum.photos/seed/header4/40/40"
                 alt="Avatar 4"
               />
-              {/* --- Fin Imágenes Modificadas --- */}
               <div className="w-10 h-10 bg-[#F2F4F7] rounded-full flex justify-center items-center border-2 border-white">
                 <span className="text-[#606C80] text-xs font-bold">+5</span>
               </div>
-            </div>
+            </div>{" "}
+            {/* Botón para abrir el modal de nueva tarea */}
             <button
-              onClick={() => openModalWithStatus('to-do')} // Abre modal en 'to-do' por defecto
+              onClick={() => openModalWithStatus("por-hacer")}
               className="w-10 h-10 bg-white rounded-full border-2 border-[#EBEEF2] flex justify-center items-center hover:bg-gray-50"
+              disabled={savingTask}
             >
               <span className="text-[#606C80] font-bold text-lg leading-none pb-1">
-                + {/* Ajustado para mejor centrado */}
+                +
               </span>
             </button>
           </div>
@@ -344,30 +384,42 @@ export default function ProjectBoardPage() {
         {/* Toolbar */}
         <div className="px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
+            {/* Botones de vista */}
             <div className="flex h-10 rounded-lg border border-[#EBEEF2] overflow-hidden">
               <button
                 onClick={() => setActiveView("board")}
                 className={`h-10 px-4 py-2 flex items-center gap-2 ${
                   activeView === "board"
-                    ? "bg-[#FAFBFC] text-[#1F2633]" // Estilo activo mejorado
+                    ? "bg-[#FAFBFC] text-[#1F2633]"
                     : "bg-white text-[#606C80]"
                 } hover:bg-gray-50 transition-colors`}
               >
-                <LayoutGrid size={16} className={activeView === "board" ? "text-[#606C80]" : "text-[#C7CED9]"} />
+                <LayoutGrid
+                  size={16}
+                  className={
+                    activeView === "board" ? "text-[#606C80]" : "text-[#C7CED9]"
+                  }
+                />
                 <span className="text-xs font-medium">Board View</span>
               </button>
               <button
                 onClick={() => setActiveView("list")}
                 className={`h-10 px-4 py-2 flex items-center gap-2 ${
                   activeView === "list"
-                    ? "bg-[#FAFBFC] text-[#1F2633]" // Estilo activo mejorado
+                    ? "bg-[#FAFBFC] text-[#1F2633]"
                     : "bg-white text-[#606C80]"
                 } hover:bg-gray-50 transition-colors`}
               >
-                <List size={16} className={activeView === "list" ? "text-[#606C80]" : "text-[#C7CED9]"} />
+                <List
+                  size={16}
+                  className={
+                    activeView === "list" ? "text-[#606C80]" : "text-[#C7CED9]"
+                  }
+                />
                 <span className="text-xs font-medium">Lista</span>
               </button>
             </div>
+            {/* Botón de GitHub Sheet */}
             <button
               onClick={() => setIsGithubSheetOpen(true)}
               className="h-10 px-4 py-2 bg-white rounded-lg border border-[#EBEEF2] flex items-center gap-2"
@@ -379,6 +431,7 @@ export default function ProjectBoardPage() {
             </button>
           </div>
 
+          {/* Barra de búsqueda */}
           <div className="flex items-center gap-4">
             <div className="w-[240px] h-10 px-3 py-2 bg-white rounded-lg border border-[#EBEEF2] flex items-center gap-2 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
               <Search size={16} className="text-[#C7CED9]" />
@@ -388,68 +441,94 @@ export default function ProjectBoardPage() {
                 className="flex-1 border-none text-sm focus:outline-none text-[#606C80] placeholder-[#98A2B2] bg-transparent"
               />
             </div>
-
-            {/* Estos botones podrían tener funciones en el futuro */}
-            {/* <div className="flex gap-2">
-              <button className="p-2 bg-white rounded-lg border border-[#EBEEF2] flex justify-center items-center hover:bg-gray-50">
-                <FileText size={20} className="text-[#C7CED9]" />
-              </button>
-              <button className="p-2 bg-white rounded-lg border border-[#EBEEF2] flex justify-center items-center hover:bg-gray-50">
-                <List size={20} className="text-[#C7CED9]" />
-              </button>
-              <button className="p-2 bg-white rounded-lg border border-[#EBEEF2] flex justify-center items-center hover:bg-gray-50">
-                <LayoutGrid size={20} className="text-[#C7CED9]" />
-              </button>
-            </div> */}
           </div>
         </div>
 
+        {/* Indicadores de carga y error */}
+        {loadingTasks && (
+          <div className="px-6 text-center text-gray-600">
+            Cargando tareas...
+          </div>
+        )}
+        {errorTasks && (
+          <div className="px-6 text-center text-red-500">
+            Error: {errorTasks}
+          </div>
+        )}
+
         {/* Contenido principal basado en la vista activa */}
-        {/* Asegúrate que BoardView y ListView puedan manejar la propiedad 'coverImage' si la defines */}
-        {activeView === "board" ? (
-          <BoardView
-            tasks={tasks} // Pasa todas las tareas
-            todoTasks={todoTasks}
-            inProcessTasks={inProcessTasks}
-            doneTasks={doneTasks}
-            // Si usas 'to-verify', pásalo también: toVerifyTasks={toVerifyTasks}
-            onDragEnd={onDragEnd}
-            onAddTask={openModalWithStatus}
-          />
-        ) : (
-          // Asegúrate que ListView pueda manejar las tareas con coverImage si es necesario
-          <ListView tasks={tasks} />
+        {/* Solo renderizamos si no hay error y ya no estamos cargando */}
+        {!loadingTasks &&
+          !errorTasks &&
+          (activeView === "board" ? (
+            <BoardView
+              tasks={tasks}
+              todoTasks={todoTasks}
+              inProcessTasks={inProcessTasks}
+              doneTasks={doneTasks}
+              toVerifyTasks={toVerifyTasks}
+              onDragEnd={onDragEnd}
+              onAddTask={openModalWithStatus}
+              onEditTask={(task) => {
+                setEditingTask(task);
+                setIsModalOpen(true);
+              }}
+              onDeleteTask={handleDeleteTask}
+            />
+          ) : (
+            <ListView tasks={tasks} />
+          ))}
+        
+        {updatingTaskStatus && (
+          <div className="fixed bottom-4 right-4 bg-blue-500 text-white px-4 py-2 rounded shadow-lg">
+            Actualizando tarea...
+          </div>
         )}
       </div>
-
-      {/* Modal para crear tareas */}
+      {/* Modal para crear tareas */}{" "}
       <CreateTaskModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingTask(null); 
+        }}
         onSave={handleSaveTask}
         initialStatus={modalInitialStatus}
+        isSaving={savingTask} 
+        taskToEdit={editingTask} 
       />
-
       {/* Sheet para información de GitHub */}
       <Sheet open={isGithubSheetOpen} onOpenChange={setIsGithubSheetOpen}>
-        <SheetContent side="right" className="max-w-xl w-full bg-white border-none shadow-xl p-8 flex flex-col items-center justify-start">
+        <SheetContent
+          side="right"
+          className="max-w-xl w-full bg-white border-none shadow-xl p-8 flex flex-col items-center justify-start"
+        >
           <SheetHeader className="w-full mb-4">
-            <SheetTitle className="text-2xl font-bold text-[#1F2633]">Información del repositorio</SheetTitle>
+            <SheetTitle className="text-2xl font-bold text-[#1F2633]">
+              Información del repositorio
+            </SheetTitle>
           </SheetHeader>
           <div className="flex flex-col gap-6 w-full">
             {/* Ramas activas */}
             <div className="bg-[#FAFBFC] rounded-lg p-6 shadow border-none">
-              <h3 className="font-bold text-lg mb-4 text-[#1F2633]">Ramas activas</h3>
+              <h3 className="font-bold text-lg mb-4 text-[#1F2633]">
+                Ramas activas
+              </h3>
               {githubLoading ? (
                 <p>Cargando ramas...</p>
               ) : githubError ? (
                 <p className="text-red-500">{githubError}</p>
               ) : (
                 <ul className="space-y-2">
-                  {githubBranches.map(branch => (
-                    <li key={branch} className="flex items-center justify-between">
+                  {githubBranches.map((branch) => (
+                    <li
+                      key={branch}
+                      className="flex items-center justify-between"
+                    >
                       <span className="font-mono text-blue-700">{branch}</span>
-                      <span className="ml-2 px-2 py-1 text-xs bg-green-100 text-green-700 rounded">Producción</span>
+                      <span className="ml-2 px-2 py-1 text-xs bg-green-100 text-green-700 rounded">
+                        Producción
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -457,14 +536,28 @@ export default function ProjectBoardPage() {
             </div>
             {/* Repositorio */}
             <div className="bg-[#FAFBFC] rounded-lg p-6 shadow border-none">
-              <h3 className="font-bold text-lg mb-4 text-[#1F2633]">Repositorio</h3>
+              <h3 className="font-bold text-lg mb-4 text-[#1F2633]">
+                Repositorio
+              </h3>
               <p>
-                <a href="https://github.com/empresa/proyecto-1" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-                  github.com/empresa/proyecto-1
+                <a
+                  href={`https://github.com/empresa/${projectId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 underline"
+                >
+                  github.com/empresa/{projectId}
                 </a>
               </p>
-              <p className="text-sm text-gray-500 mt-2">Último commit: hace 2h</p>
-              <a href="https://github.com/empresa/proyecto-1" target="_blank" rel="noopener noreferrer" className="mt-2 inline-block px-3 py-1 border rounded text-xs bg-white hover:bg-gray-50">
+              <p className="text-sm text-gray-500 mt-2">
+                Último commit: hace 2h
+              </p>
+              <a
+                href={`https://github.com/empresa/${projectId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-block px-3 py-1 border rounded text-xs bg-white hover:bg-gray-50"
+              >
                 Ver en GitHub
               </a>
             </div>
