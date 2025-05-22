@@ -4,6 +4,8 @@ import Router from "./routes/Router";
 import { useAppSelector } from "./hooks/useAppSelector";
 import { useAppDispatch } from "./hooks/useAppDispatch";
 import { loadUserProfile } from "./store/slices/authSlice";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const App: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -16,7 +18,23 @@ const App: React.FC = () => {
     }
   }, [dispatch, isAuthenticated, user]);
 
-  return <Router />;
+  return (
+    <>
+      <Router />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+    </>
+  );
 };
 
 export default App;
