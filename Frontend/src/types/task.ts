@@ -4,7 +4,13 @@ export type Task = {
   title: string;
   taskId: string;
   status: "por-hacer" | "en-proceso" | "hecho" | "por-verificar";
-  assignees: { id: string; image: string }[];
+  assignees: {
+    id: string;
+    image: string;
+    username?: string;
+    email?: string;
+    displayName?: string;
+  }[];
   comments: number; // Total de comentarios
   commentsList?: string[]; // Lista de comentarios
   attachments: number; // Total de archivos adjuntos

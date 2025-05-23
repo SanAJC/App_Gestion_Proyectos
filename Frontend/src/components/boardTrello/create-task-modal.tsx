@@ -11,21 +11,27 @@ import {
   Tag,
   AlertCircle,
 } from "lucide-react";
-import { Task } from "@/types/task"; 
+import { Task } from "@/types/task";
 
 type CreateTaskModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onSave: (task: Omit<Task, "id">) => void;
   initialStatus?: "por-hacer" | "en-proceso" | "hecho" | "por-verificar";
-  isSaving?: boolean; 
-  taskToEdit?: Task | null; 
+  isSaving?: boolean;
+  taskToEdit?: Task | null;
   projectMembers?: {
     id: string;
     email: string;
     username: string;
     image: string;
-  }[]; 
+  }[];
+  currentUser?: {
+    uid: string;
+    email: string;
+    username?: string;
+    displayName?: string;
+  } | null;
 };
 
 export default function CreateTaskModal({
@@ -34,8 +40,9 @@ export default function CreateTaskModal({
   onSave,
   initialStatus = "por-hacer",
   isSaving = false,
-  taskToEdit = null, 
-  projectMembers = [], 
+  taskToEdit = null,
+  projectMembers = [],
+  currentUser = null,
 }: CreateTaskModalProps) {
   const [title, setTitle] = useState("");
   const [taskId, setTaskId] = useState("");
@@ -54,31 +61,62 @@ export default function CreateTaskModal({
   const [attachments, setAttachments] = useState<string[]>(
     taskToEdit?.attachments ? Array(taskToEdit.attachments).fill("") : []
   );
-  const [newAttachment, setNewAttachment] = useState("");
-  
+  const [, setNewAttachment] = useState("");
   useEffect(() => {
     if (isOpen) {
       if (taskToEdit) {
-        
+        // Si estamos editando una tarea existente
         setTitle(taskToEdit.title);
         setTaskId(taskToEdit.taskId);
         setStatus(taskToEdit.status);
         setAssignees(taskToEdit.assignees);
-        setTags(taskToEdit.tags || []);
-        setSelectedTag("");
-        
-        setComments(taskToEdit.commentsList || []);
+
+        // Asegurarse de que hay etiquetas y que incluyen la de estado
+        const taskTags = taskToEdit.tags || [];
+        setTags(taskTags);
+
+        // Asegurarse de que hay comentarios
+        if (taskToEdit.commentsList && taskToEdit.commentsList.length > 0) {
+          setComments(taskToEdit.commentsList);
+        } else if (taskToEdit.comments > 0) {
+          // Si hay contador de comentarios pero no lista, crear array vacío del tamaño adecuado
+          setComments(Array(taskToEdit.comments).fill(""));
+        } else {
+          setComments([]);
+        }
         setNewComment("");
-        
-        setAttachments(taskToEdit.attachmentsList || []);
+
+        // Asegurarse de que hay adjuntos
+        if (
+          taskToEdit.attachmentsList &&
+          taskToEdit.attachmentsList.length > 0
+        ) {
+          setAttachments(taskToEdit.attachmentsList);
+        } else if (taskToEdit.attachments > 0) {
+          // Si hay contador de adjuntos pero no lista, crear array vacío del tamaño adecuado
+          setAttachments(Array(taskToEdit.attachments).fill(""));
+        } else {
+          setAttachments([]);
+        }
         setNewAttachment("");
       } else {
-        
+        // Inicialización para una nueva tarea
         setTitle("");
         setTaskId("");
         setStatus(initialStatus);
         setAssignees([]);
-        setTags([]);
+
+        // Para una nueva tarea, inicializar con la etiqueta del estado inicial
+        const initialStatusTag =
+          initialStatus === "por-hacer"
+            ? "Por hacer"
+            : initialStatus === "en-proceso"
+            ? "En proceso"
+            : initialStatus === "hecho"
+            ? "Hecho"
+            : "Por verificar";
+        setTags([initialStatusTag]);
+
         setSelectedTag("");
         setComments([]);
         setNewComment("");
@@ -88,73 +126,69 @@ export default function CreateTaskModal({
     }
   }, [isOpen, initialStatus, taskToEdit]);
 
-  
   useEffect(() => {
     if (isOpen && !taskToEdit) {
       const randomNum = Math.floor(Math.random() * 1000);
       setTaskId(`#UI${randomNum.toString().padStart(3, "0")}`);
     }
   }, [isOpen, taskToEdit]);
-  
   useEffect(() => {
-    if (status === "por-hacer") {
-      setTags((prevTags) => {
-        if (prevTags.some((tag) => tag.toLowerCase() === "por hacer")) {
-          return prevTags;
-        }
-        return [
-          "Por hacer",
-          ...prevTags.filter(
-            (tag) => !["En proceso", "Hecho", "Por verificar"].includes(tag)
-          ),
-        ];
-      });
-    } else if (status === "en-proceso") {
-      setTags((prevTags) => {
-        if (prevTags.some((tag) => tag.toLowerCase() === "en proceso")) {
-          return prevTags;
-        }
-        return [
-          "En proceso",
-          ...prevTags.filter(
-            (tag) => !["Por hacer", "Hecho", "Por verificar"].includes(tag)
-          ),
-        ];
-      });
-    } else if (status === "hecho") {
-      setTags((prevTags) => {
-        if (prevTags.some((tag) => tag.toLowerCase() === "hecho")) {
-          return prevTags;
-        }
-        return [
-          "Hecho",
-          ...prevTags.filter(
-            (tag) => !["Por hacer", "En proceso", "Por verificar"].includes(tag)
-          ),
-        ];
-      });
-    } else if (status === "por-verificar") {
-      setTags((prevTags) => {
-        if (prevTags.some((tag) => tag.toLowerCase() === "por verificar")) {
-          return prevTags;
-        }
-        return [
-          "Por verificar",
-          ...prevTags.filter(
-            (tag) => !["Por hacer", "En proceso", "Hecho"].includes(tag)
-          ),
-        ];
-      });
-    }
-  }, [status]);
+    // Función para actualizar etiquetas basado en el estado
+    const updateTagsBasedOnStatus = () => {
+      // Definir la etiqueta correspondiente al estado actual
+      const statusTagMap = {
+        "por-hacer": "Por hacer",
+        "en-proceso": "En proceso",
+        hecho: "Hecho",
+        "por-verificar": "Por verificar",
+      };
+
+      const currentStatusTag = statusTagMap[status];
+      const otherStatusTags = Object.values(statusTagMap).filter(
+        (tag) => tag !== currentStatusTag
+      );
+
+      // Verificar si ya existe la etiqueta de estado actual
+      const hasCurrentStatusTag = tags.some((tag) => tag === currentStatusTag);
+
+      if (!hasCurrentStatusTag) {
+        // Filtrar otras etiquetas de estado y añadir la actual al principio
+        const filteredTags = tags.filter(
+          (tag) => !otherStatusTags.includes(tag)
+        );
+        setTags([currentStatusTag, ...filteredTags]);
+      }
+    };
+
+    // Ejecutar la actualización
+    updateTagsBasedOnStatus();
+  }, [status, tags]);
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    
     if (!title.trim()) {
       alert("Por favor ingresa un título para la tarea");
       return;
-    } 
+    }
+
+    // Asegurémonos de que la etiqueta de estado esté incluida correctamente
+    let updatedTags = [...tags];
+    const statusTags = ["Por hacer", "En proceso", "Hecho", "Por verificar"];
+    const currentStatusTag =
+      status === "por-hacer"
+        ? "Por hacer"
+        : status === "en-proceso"
+        ? "En proceso"
+        : status === "hecho"
+        ? "Hecho"
+        : "Por verificar";
+
+    // Eliminar otras etiquetas de estado si existen
+    updatedTags = updatedTags.filter((tag) => !statusTags.includes(tag));
+
+    // Añadir la etiqueta correspondiente al estado actual al principio
+    updatedTags = [currentStatusTag, ...updatedTags];
+
     const newTask: Omit<Task, "id"> = {
       title,
       taskId,
@@ -166,43 +200,47 @@ export default function CreateTaskModal({
       attachmentsList: attachments.filter(
         (attachment) => attachment.trim() !== ""
       ), // Filtrar adjuntos vacíos
-      tags,
+      tags: updatedTags, // Usar las etiquetas actualizadas
       coverImage: taskToEdit?.coverImage,
     };
 
     onSave(newTask);
-    onClose(); 
+    onClose();
   };
   const handleAddAssignee = () => {
     if (projectMembers && projectMembers.length > 0) {
-      
-      return; 
+      return;
     }
 
-    
     const newAssignee = {
       id: `user-${assignees.length + 1}`,
       image: `https://picsum.photos/seed/user${assignees.length + 1}/32/32`,
     };
     setAssignees([...assignees, newAssignee]);
   };
-
   const handleSelectAssignee = (member: {
     id: string;
     email: string;
-    username: string;
-    image: string;
+    username?: string;
+    displayName?: string;
+    image?: string;
   }) => {
-    
     if (assignees.some((a) => a.id === member.id)) {
       return;
     }
 
+    // Mostrar el nombre de usuario, displayName o email en ese orden de prioridad
+    const displayedName = member.username || member.displayName || member.email;
+
     // Añadir el miembro a los asignados
     const newAssignee = {
       id: member.id,
-      image: member.image,
-      username: member.username,
+      image:
+        member.image ||
+        `https://ui-avatars.com/api/?name=${encodeURIComponent(
+          displayedName
+        )}&background=random`,
+      username: displayedName,
       email: member.email,
     };
 
@@ -220,10 +258,13 @@ export default function CreateTaskModal({
     }
   };
   const handleRemoveTag = (tag: string, index: number) => {
-    // Solo permitimos eliminar etiquetas que no sean la primera (etiqueta de estado)
-    if (index > 0) {
-      setTags(tags.filter((t) => t !== tag));
+    // No permitir eliminar etiquetas de estado
+    const statusTags = ["Por hacer", "En proceso", "Hecho", "Por verificar"];
+    if (statusTags.includes(tag)) {
+      return;
     }
+
+    setTags(tags.filter((t) => t !== tag));
   };
   if (!isOpen) return null;
 
@@ -345,10 +386,9 @@ export default function CreateTaskModal({
                   </button>
                 </div>
               ))}
-            </div>
-
+            </div>{" "}
             {projectMembers && projectMembers.length > 0 ? (
-              <div className="relative">
+              <div className="relative flex flex-col gap-2">
                 <select
                   className="w-full px-3 py-2 border border-[#EBEEF2] rounded-lg text-sm"
                   onChange={(e) => {
@@ -378,6 +418,54 @@ export default function CreateTaskModal({
                     </option>
                   ))}
                 </select>
+                {/* Botón para autoasignarse la tarea */}
+                {currentUser && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Buscamos si el usuario actual está en los miembros del proyecto
+                      const member = projectMembers.find(
+                        (m) => m.email === currentUser.email
+                      );
+
+                      // Si lo encontramos y no está ya asignado, lo añadimos a los asignados
+                      if (
+                        member &&
+                        !assignees.some((a) => a.id === member.id)
+                      ) {
+                        handleSelectAssignee(member);
+                      } else if (!member) {
+                        // Si no encontramos al usuario en los miembros del proyecto (caso poco probable)
+                        // Creamos un nuevo asignado con la información del usuario actual
+                        const displayedName =
+                          currentUser.username ||
+                          currentUser.displayName ||
+                          currentUser.email;
+                        const newAssignee = {
+                          id: currentUser.uid,
+                          email: currentUser.email,
+                          username: displayedName,
+                          image: `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                            displayedName
+                          )}&background=random`,
+                        };
+                        handleSelectAssignee(newAssignee);
+                      }
+                    }}
+                    className={`mt-2 py-2 rounded-lg text-sm w-full ${
+                      assignees.some((a) => a.email === currentUser.email)
+                        ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                        : "bg-[#2C8780] text-white hover:bg-[#236b64]"
+                    }`}
+                    disabled={assignees.some(
+                      (a) => a.email === currentUser.email
+                    )}
+                  >
+                    {assignees.some((a) => a.email === currentUser.email)
+                      ? "Ya estás asignado a esta tarea"
+                      : "Asignarme esta tarea"}
+                  </button>
+                )}
               </div>
             ) : (
               <button
@@ -395,24 +483,45 @@ export default function CreateTaskModal({
             <label className="flex items-center gap-2 text-sm font-medium text-[#1F2633] mb-2">
               <Tag size={16} className="text-gray-400" />
               <span>Etiquetas</span>
-            </label>
+            </label>{" "}
             <div className="flex flex-wrap gap-2 mb-2">
-              {tags.map((tag, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-1 px-2 py-1 bg-blue-100 rounded-lg"
-                >
-                  <span className="text-xs text-blue-700">{tag}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveTag(tag, index)}
-                    className="text-blue-500 hover:text-red-500"
-                    disabled={index === 0} // Prevenir eliminar la etiqueta de estado
+              {tags.map((tag, index) => {
+                // Identificar las etiquetas de estado para darles un estilo especial
+                const isStatusTag = [
+                  "Por hacer",
+                  "En proceso",
+                  "Hecho",
+                  "Por verificar",
+                ].includes(tag);
+                return (
+                  <div
+                    key={index}
+                    className={`flex items-center gap-1 px-2 py-1 rounded-lg ${
+                      isStatusTag
+                        ? "bg-blue-200 border border-blue-300"
+                        : "bg-blue-100"
+                    }`}
                   >
-                    <X size={14} />
-                  </button>
-                </div>
-              ))}
+                    <span
+                      className={`text-xs ${
+                        isStatusTag
+                          ? "text-blue-800 font-medium"
+                          : "text-blue-700"
+                      }`}
+                    >
+                      {tag}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveTag(tag, index)}
+                      className="text-blue-500 hover:text-red-500"
+                      disabled={isStatusTag} // Deshabilitar el botón para etiquetas de estado
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
             <div className="flex gap-2">
               <input

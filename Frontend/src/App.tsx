@@ -6,10 +6,15 @@ import { useAppDispatch } from "./hooks/useAppDispatch";
 import { loadUserProfile } from "./store/slices/authSlice";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import usePrefetchResources from "./utils/prefetchResources";
+import "./styles/optimizations.css"; // Importamos las optimizaciones
 
 const App: React.FC = () => {
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+
+  // Usar el hook para precargar recursos
+  usePrefetchResources();
 
   useEffect(() => {
     // Si hay un token (isAuthenticated) pero no hay información de usuario, cargar el perfil

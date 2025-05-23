@@ -159,7 +159,6 @@ export default function TaskCard({
                 return (
                   <div
                     key={i}
-                    // OJO: Faltaba una comilla al inicio de la clase aquí en tu código original
                     className={`h-5 px-2 py-[2px] ${bg} rounded-full flex justify-center items-center`}
                   >
                     <span
@@ -179,22 +178,27 @@ export default function TaskCard({
               {/* Sección Izquierda: Avatares y Botón + */}
               <div className="flex items-center gap-2">
                 {" "}
-                {/* Grupo de Avatares */}
+                {/* Grupo de Avatares */}{" "}
                 <div className="flex -space-x-2">
-                  {task.assignees.slice(0, 4).map((assignee,) => (
-                    <img
-                      key={assignee.id}
-                      className="w-8 h-8 rounded-full border-2 border-white"
-                      src={
-                        assignee.image ||
-                        `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                          assignee.id
-                        )}&background=random`
-                      }
-                      alt={`Avatar de ${assignee.id}`}
-                      title={assignee.id}
-                    />
-                  ))}
+                  {task.assignees.slice(0, 4).map((assignee) => {
+                    // Determinar el nombre a mostrar: username, displayName o id como último recurso
+                    const displayName =
+                      assignee.username || assignee.displayName || assignee.id;
+                    return (
+                      <img
+                        key={assignee.id}
+                        className="w-8 h-8 rounded-full border-2 border-white"
+                        src={
+                          assignee.image ||
+                          `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                            displayName
+                          )}&background=random`
+                        }
+                        alt={`Avatar de ${displayName}`}
+                        title={displayName}
+                      />
+                    );
+                  })}
                   {/* Contador de Avatares Extra (solo si hay más de 4) */}
                   {task.assignees.length > 4 && (
                     <div className="w-8 h-8 bg-[#F2F4F7] rounded-full flex justify-center items-center border-2 border-white">

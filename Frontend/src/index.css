@@ -9,6 +9,10 @@
   font-style: normal;
 
   color-scheme: light dark;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424;
 
@@ -48,6 +52,17 @@
   --sidebar-accent-foreground: oklch(0.216 0.006 56.043);
   --sidebar-border: oklch(0.923 0.003 48.717);
   --sidebar-ring: oklch(0.709 0.01 56.259);
+}
+
+/* Optimizaciones para el rendimiento de carga */
+img, svg {
+  content-visibility: auto;
+}
+
+/* Animación de transición para el loader inicial */
+.fade-out {
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 a {

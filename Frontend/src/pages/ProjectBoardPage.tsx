@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/sheet";
 import api from "@/services/api";
 import { Task } from "@/types/task";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 
 export default function ProjectBoardPage() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -42,6 +44,9 @@ export default function ProjectBoardPage() {
     { id: string; email: string; username: string; image: string }[]
   >([]);
   const [projectDetails, setProjectDetails] = useState<any>(null);
+
+  // Obtener la información del usuario autenticado
+  const currentUser = useSelector((state: RootState) => state.auth.user);
 
   // Cargar tareas y detalles del proyecto al montar el componente
   useEffect(() => {
@@ -487,7 +492,7 @@ export default function ProjectBoardPage() {
                 <span className="text-xs font-medium">Lista</span>
               </button>
             </div>
-            
+
             <button
               onClick={() => setIsGithubSheetOpen(true)}
               className="h-10 px-4 py-2 bg-white rounded-lg border border-[#EBEEF2] flex items-center gap-2"
@@ -565,12 +570,18 @@ export default function ProjectBoardPage() {
         isSaving={savingTask}
         taskToEdit={editingTask}
         projectMembers={projectMembers}
+        currentUser={currentUser ? {
+          uid: currentUser.uid || '',
+          email: currentUser.email || '',
+          username: currentUser.username,
+          displayName: currentUser.displayName
+        } : null}
       />
       {/* Sheet para información de GitHub */}
       <Sheet open={isGithubSheetOpen} onOpenChange={setIsGithubSheetOpen}>
         <SheetContent
           side="right"
-          className="max-w-xl w-full bg-white border-none shadow-xl p-8 flex flex-col items-center justify-start"
+          className="max-w-xl w-full bg-white border-none shadow-xl p-8 flex flex-col items-center justify-start overflow-y-auto"
         >
           <SheetHeader className="w-full mb-4">
             <SheetTitle className="text-2xl font-bold text-[#1F2633]">

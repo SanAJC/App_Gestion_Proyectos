@@ -22,8 +22,12 @@ const CreateTaskCard: React.FC<CreateTaskCardProps> = ({ onClick }) => {
     >
       <div className="flex justify-between items-center p-4 h-full">
         <div className="ml-2">
-          <h3 className="text-lg font-medium font-poppins text-left">Crear Tarea</h3>
-          <p className="text-sm font-normal font-poppins">Crear nueva tarea</p>
+          <h3 className="text-lg font-medium font-poppins text-left">
+            Crear Tarea
+          </h3>
+          <p className="text-sm font-normal font-poppins">
+            Crear nueva tarea en un proyecto
+          </p>
         </div>
         <div
           className="flex items-center justify-center bg-white rounded-md h-10 w-10 text-[#0C0B0B]"

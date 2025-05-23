@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -6,6 +6,15 @@ import { Avatar } from "@/components/ui/avatar";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { logout } from "@/store/slices/authSlice";
+import "@/components/dashboard/dashboard.css";
+// Importamos los componentes precargados
+import {
+  RadarChart,
+  CalendarCard,
+  CreateTaskCard,
+  Timeline,
+  CreateTaskModal,
+} from "@/utils/preloadComponents";
 import {
   SidebarProvider,
   Sidebar,
@@ -35,13 +44,34 @@ import {
   SquareCheckBig,
 } from "lucide-react";
 
-// Import custom dashboard components
 import StatCard from "@/components/dashboard/StatCard";
-import RadarChart from "@/components/dashboard/RadarChart";
-import CalendarCard from "@/components/dashboard/CalendarCard";
-import CreateTaskCard from "@/components/dashboard/CreateTaskCard";
-import Timeline from "@/components/dashboard/Timeline";
-import CreateTaskModal from "@/components/boardTrello/create-task-modal";
+import {
+  RadarChartSkeleton,
+  CalendarCardSkeleton,
+  CreateTaskCardSkeleton,
+  TimelineSkeleton,
+  ModalSkeleton,
+} from "@/components/dashboard/SkeletonLoaders";
+import LocalCache from "@/utils/localCache";
+
+import api from "@/services/api";
+import { toast } from "react-toastify";
+
+// Definir interfaz para proyectos
+interface Project {
+  id: string;
+  title: string;
+  description?: string;
+  ownerId: string;
+  miembros: string[];
+  githubRepo?: {
+    name: string;
+    url: string;
+  };
+  status?: string;
+  image?: string;
+  type?: string;
+}
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -49,14 +79,201 @@ const DashboardPage: React.FC = () => {
   const { user } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
 
-  // Leer avatar personalizado del localStorage por usuario
+  // Estados para la creación de tareas
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [isProjectSelectionOpen, setIsProjectSelectionOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [projectMembers, setProjectMembers] = useState<
+    { id: string; email: string; username: string; image: string }[]
+  >([]);
+  const [loadingProjects, setLoadingProjects] = useState(false);
+  const [modalInitialStatus, setModalInitialStatus] = useState<
+    "por-hacer" | "en-proceso" | "hecho" | "por-verificar"
+  >("por-hacer");
+  const [savingTask, setSavingTask] = useState(false);
+
+  
   const userEmail = user?.email || "";
   const savedAvatar = userEmail
     ? localStorage.getItem(`userAvatar_${userEmail}`)
-    : null;
+    : null; 
+  useEffect(() => {
+    if (user?.uid) {
+      
+      localStorage.setItem("uid", user.uid);
+      
+      if (user.email) {
+        localStorage.setItem("userEmail", user.email);
+      }
 
-  // Estado para el modal de tarea
-  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+      
+      LocalCache.clearExpired();
+
+      
+      fetchProjects();
+    }
+  }, [user]);
+  
+  const fetchProjects = async () => {
+    if (!user?.uid) return;
+
+    
+    const cacheKey = `user_projects_${user.uid}`;
+    const cachedProjects = LocalCache.get(cacheKey);
+
+    if (cachedProjects && Array.isArray(cachedProjects)) {
+      // Usar proyectos en caché
+      setProjects(cachedProjects as Project[]);
+      setLoadingProjects(false);
+      return;
+    }
+
+    setLoadingProjects(true);
+    try {
+      const response = await api.get(`/projects/user/${user?.uid}`);
+      const projectsData = response.data.projects;
+
+      // Guardar en el estado y en caché
+      setProjects(projectsData);
+      LocalCache.set(cacheKey, projectsData, 300); // Caché por 5 minutos
+    } catch (err: any) {
+      console.error("Error al cargar proyectos:", err);
+      toast.error("Error al cargar proyectos. Intenta de nuevo más tarde.");
+    } finally {
+      setLoadingProjects(false);
+    }
+  };
+
+  // Función para cargar miembros del proyecto
+  const fetchProjectMembers = async (projectId: string) => {
+    try {
+      const response = await api.get(`/projects/${projectId}`);
+      const projectData = response.data.project || response.data;
+
+      // Procesar los miembros del proyecto (similar a ProjectBoardPage)
+      if (
+        projectData &&
+        projectData.miembros &&
+        Array.isArray(projectData.miembros)
+      ) {
+        const membersPromises = projectData.miembros.map(
+          async (email: string) => {
+            try {
+              // Obtener información detallada del usuario
+              const userResponse = await api.get(
+                `/auth/check-user?email=${encodeURIComponent(email)}`
+              );
+              const userData = userResponse.data;
+
+              return {
+                id:
+                  userData.userId ||
+                  `user-${Math.random().toString(36).substring(2, 9)}`,
+                email: email,
+                username: userData.exists ? userData.username : email,
+                image: `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                  userData.username || email
+                )}&background=random`,
+              };
+            } catch (error) {
+              console.error(
+                `Error al obtener datos del usuario ${email}:`,
+                error
+              );
+              return {
+                id: `user-${Math.random().toString(36).substring(2, 9)}`,
+                email: email,
+                username: email,
+                image: `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                  email
+                )}&background=random`,
+              };
+            }
+          }
+        );
+
+        const membersData = await Promise.all(membersPromises);
+        setProjectMembers(membersData);
+        return membersData;
+      }
+      return [];
+    } catch (error) {
+      console.error("Error al obtener miembros del proyecto:", error);
+      toast.error("Error al cargar los miembros del proyecto");
+      return [];
+    }
+  };
+  // Función para crear una tarea
+  const handleSaveTask = async (newTaskData: any) => {
+    if (!selectedProject || !selectedProject.id) {
+      toast.error("No se ha seleccionado un proyecto");
+      return;
+    }
+
+    setSavingTask(true);
+
+    try {
+      // Preparar los datos para la API con imágenes por defecto
+      const taskDataWithImages = {
+        ...newTaskData,
+        assignees: newTaskData.assignees.map((a: any) => ({
+          ...a,
+          image: a.image || `https://picsum.photos/seed/${a.id}/32/32`,
+        })),
+      };
+
+      // Llamada al API para crear la tarea
+      const response = await api.post(
+        `/tasks/${selectedProject.id}`,
+        taskDataWithImages
+      );
+
+      toast.success(
+        <div>
+          Tarea creada exitosamente
+          <button
+            className="ml-2 underline text-blue-500"
+            onClick={() => navigate(`/project/${selectedProject.id}`)}
+          >
+            Ver en proyecto
+          </button>
+        </div>,
+        { autoClose: 5000 }
+      );
+
+      setIsTaskModalOpen(false);
+      setSelectedProject(null);
+    } catch (error) {
+      console.error("Error al crear la tarea:", error);
+      toast.error("Error al crear la tarea");
+    } finally {
+      setSavingTask(false);
+    }
+  };
+
+  // Función para abrir el modal de selección de proyecto
+  const handleCreateTask = () => {
+    if (projects.length === 0) {
+      toast.info("Primero debes crear un proyecto");
+      navigate("/projects");
+      return;
+    }
+
+    setIsProjectSelectionOpen(true);
+  };
+
+  // Función para seleccionar un proyecto
+  const handleSelectProject = async (project: Project) => {
+    setSelectedProject(project);
+    setIsProjectSelectionOpen(false);
+
+    // Cargar miembros del proyecto
+    await fetchProjectMembers(project.id);
+
+    // Abrir el modal de creación de tarea
+    setIsTaskModalOpen(true);
+  };
 
   const handleLogout = () => {
     dispatch(logout());
@@ -76,39 +293,158 @@ const DashboardPage: React.FC = () => {
       </div>
     );
   };
+  // Estados para las estadísticas
+  const [tasksStats, setTasksStats] = useState({
+    total: 0,
+    completed: 0,
+    inProgress: 0,
+    todoTasks: 0,
+    toVerify: 0,
+  });
+  const [, setProjectsCount] = useState(0);
+  const [, setLoadingStats] = useState(false);
 
+  // Cargar estadísticas cuando se carguen los proyectos
+  useEffect(() => {
+    if (projects.length > 0) {
+      fetchTasksStats();
+    }
+  }, [projects]); // Función para obtener las estadísticas de tareas del usuario autenticado
+  const fetchTasksStats = async () => {
+    if (!user?.uid) {
+      console.error("No hay usuario autenticado");
+      return;
+    }
+
+    // Intentar obtener estadísticas del caché primero
+    const cacheKey = `task_stats_${user.uid}`;
+    const cachedStats = LocalCache.get(cacheKey);
+
+    if (cachedStats && 
+        typeof cachedStats === 'object' && 
+        'total' in cachedStats && 
+        'completed' in cachedStats && 
+        'inProgress' in cachedStats && 
+        'todoTasks' in cachedStats && 
+        'toVerify' in cachedStats) {
+      // Usar estadísticas en caché
+      setTasksStats(cachedStats as {
+        total: number;
+        completed: number;
+        inProgress: number;
+        todoTasks: number;
+        toVerify: number;
+      });
+      setLoadingStats(false);
+      return;
+    }
+
+    setLoadingStats(true);
+    let totalTasks = 0;
+    let completedTasks = 0;
+    let inProgressTasks = 0;
+    let todoTasks = 0;
+    let toVerifyTasks = 0;
+
+    try {
+      
+      setProjectsCount(projects.length);
+
+      
+      const tasksPromises = projects.map(async (project) => {
+        try {
+          const response = await api.get(`/tasks/${project.id}`);
+          const tasksData = response.data.tasks || response.data;
+
+          if (Array.isArray(tasksData)) {
+            // Filtrar solo las tareas asignadas al usuario actual
+            const userTasks = tasksData.filter(
+              (task) =>
+                task.assignees &&
+                task.assignees.some(
+                  (assignee: { id: string | undefined; email: string }) =>
+                    assignee.id === user.uid || assignee.email === user.email
+                )
+            );
+
+            totalTasks += userTasks.length;
+
+            // Contar tareas por estado
+            userTasks.forEach((task) => {
+              if (task.status === "hecho") completedTasks++;
+              else if (task.status === "en-proceso") inProgressTasks++;
+              else if (task.status === "por-hacer") todoTasks++;
+              else if (task.status === "por-verificar") toVerifyTasks++;
+            });
+          }
+        } catch (error) {
+          console.error(
+            `Error al obtener tareas del proyecto ${project.id}:`,
+            error
+          );
+        }
+      });
+
+      await Promise.all(tasksPromises);
+
+      // Crear objeto de estadísticas
+      const newStats = {
+        total: totalTasks,
+        completed: completedTasks,
+        inProgress: inProgressTasks,
+        todoTasks: todoTasks,
+        toVerify: toVerifyTasks,
+      };
+
+      
+      setTasksStats(newStats);
+      LocalCache.set(cacheKey, newStats, 300); 
+    } catch (error) {
+      console.error("Error al obtener estadísticas de tareas:", error);
+    } finally {
+      setLoadingStats(false);
+    }
+  };
+
+  // Calcular porcentajes para las tarjetas de estadísticas
+  const completionRate =
+    tasksStats.total > 0
+      ? Math.round((tasksStats.completed / tasksStats.total) * 100)
+      : 0;
+
+  const inProgressRate =
+    tasksStats.total > 0
+      ? Math.round((tasksStats.inProgress / tasksStats.total) * 100)
+      : 0;
   const statCardsData = [
     {
-      title: "Lead coversation",
-      value: "1,908",
-      progress: 58,
+      title: "Mis tareas pendientes",
+      value: tasksStats.todoTasks.toString(),
+      progress:
+        tasksStats.total > 0
+          ? Math.round((tasksStats.todoTasks / tasksStats.total) * 100)
+          : 0,
       icon: SquarePlus,
       iconColor: "text-[#9BC440]",
       progressColor: "bg-[#9BC440]",
     },
     {
-      title: "Lead coversation",
-      value: "58.98%",
-      progress: 58,
+      title: "Mi tasa de completadas",
+      value: `${completionRate}%`,
+      progress: completionRate,
       icon: TrendingUp,
       iconColor: "text-[#89CAE7]",
       progressColor: "bg-[#89CAE7]",
     },
     {
-      title: "Lead coversation",
-      value: "1,576",
-      progress: 65,
+      title: "Mis tareas en progreso",
+      value: tasksStats.inProgress.toString(),
+      progress: inProgressRate,
       icon: SquareCheckBig,
       iconColor: "text-[#FECC0F]",
       progressColor: "bg-[#FECC0F]",
     },
   ];
-
-  // Guardar tarea (aquí solo mostramos un alert, puedes conectar a una API o estado global)
-  const handleSaveTask = (task: any) => {
-    alert("Tarea creada con éxito: " + task.title);
-    setIsTaskModalOpen(false);
-  };
 
   return (
     <div className="bg-[#f2f2f2] h-screen flex flex-col">
@@ -236,19 +572,16 @@ const DashboardPage: React.FC = () => {
             </div>
           </SidebarFooter>
         </Sidebar>
-
         {/* Mobile Sidebar Trigger */}
         <header className="p-4 md:hidden">
           <SidebarTrigger />
         </header>
-
         {/* DESDE AQUI INICIA EL CONTENIDO PRINCIPAL */}
-
         {/* Main Content */}
         <MainContent>
-          {/* Main two-column layout */}
+          
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full overflow-y-auto">
-            {/* First Column - 8/12 width on large screens */}
+            
             <div className="lg:col-span-8 space-y-6">
               {/* Welcome Header */}
               <div className="bg-white p-6 rounded-[14px] relative">
@@ -287,7 +620,6 @@ const DashboardPage: React.FC = () => {
                   </div>
                 </div>
               </div>
-
               {/* Statistics Section */}
               <div className="flex flex-wrap justify-between">
                 {statCardsData.map((data, index) => (
@@ -301,11 +633,14 @@ const DashboardPage: React.FC = () => {
                     progressColor={data.progressColor}
                   />
                 ))}
-              </div>
-
+              </div>{" "}
               {/* Radar Chart */}
               <div className="w-full">
-                <RadarChart />
+                <Suspense fallback={<RadarChartSkeleton />}>
+                  <div className="fade-in">
+                    <RadarChart />
+                  </div>
+                </Suspense>
               </div>
             </div>
 
@@ -313,29 +648,103 @@ const DashboardPage: React.FC = () => {
             <div className="lg:col-span-4 space-y-1">
               {/* Create Task Card */}
               <div>
-                <CreateTaskCard onClick={() => setIsTaskModalOpen(true)} />
+                <Suspense fallback={<CreateTaskCardSkeleton />}>
+                  <div className="fade-in">
+                    <CreateTaskCard onClick={handleCreateTask} />
+                  </div>
+                </Suspense>
               </div>
-
               {/* Calendar Card */}
               <div>
-                <CalendarCard date={date} setDate={setDate} />
+                <Suspense fallback={<CalendarCardSkeleton />}>
+                  <div className="fade-in">
+                    <CalendarCard date={date} setDate={setDate} />
+                  </div>
+                </Suspense>
               </div>
-
               {/* Timeline */}
               <div className="h-[200px] overflow-y-auto pr-2">
-                <Timeline />
+                <h3 className="text-lg font-medium mb-2">
+                  Mis tareas recientes
+                </h3>
+                <Suspense fallback={<TimelineSkeleton />}>
+                  <div className="fade-in">
+                    <Timeline />
+                  </div>
+                </Suspense>
               </div>
             </div>
           </div>
-        </MainContent>
+        </MainContent>{" "}
       </SidebarProvider>
+      {/* Modal de selección de proyecto */}
+      {isProjectSelectionOpen && (
+        <div className="fixed inset-0 bg-[#000000c6] bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-semibold mb-4">
+              Selecciona un proyecto
+            </h2>
 
+            {loadingProjects ? (
+              <p className="text-center py-4">Cargando proyectos...</p>
+            ) : projects.length === 0 ? (
+              <div className="text-center py-4">
+                <p className="mb-4">No tienes proyectos creados</p>
+                <button
+                  onClick={() => navigate("/projects")}
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                  Crear proyecto
+                </button>
+              </div>
+            ) : (
+              <div className="max-h-60 overflow-auto">
+                {projects.map((project) => (
+                  <div
+                    key={project.id}
+                    className="border rounded p-3 mb-2 hover:bg-gray-50 cursor-pointer"
+                    onClick={() => handleSelectProject(project)}
+                  >
+                    <h3 className="font-medium">{project.title}</h3>
+                    {project.description && (
+                      <p className="text-sm text-gray-600 truncate">
+                        {project.description}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex justify-end mt-4">
+              <button
+                onClick={() => setIsProjectSelectionOpen(false)}
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}{" "}
       {/* Modal para crear tarea */}
-      <CreateTaskModal
-        isOpen={isTaskModalOpen}
-        onClose={() => setIsTaskModalOpen(false)}
-        onSave={handleSaveTask}
-      />
+      {isTaskModalOpen && (
+        <Suspense fallback={<ModalSkeleton />}>
+          <CreateTaskModal
+            isOpen={isTaskModalOpen}
+            onClose={() => {
+              setIsTaskModalOpen(false);
+              setSelectedProject(null);
+            }}
+            onSave={handleSaveTask}
+            initialStatus={modalInitialStatus}
+            isSaving={savingTask}
+            taskToEdit={null}
+            projectMembers={projectMembers}
+            currentUser={user}
+          />
+        </Suspense>
+      )}
     </div>
   );
 };
